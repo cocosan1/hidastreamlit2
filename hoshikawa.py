@@ -26,319 +26,360 @@ df['金額'] = df['金額'].astype(int) #float →　int
 df['年代'] = df['年代'].astype(int) #float →　int
 df['月'] = df['月'].astype(int) #float →　int
 
+def age_ratio():
+    col1, col2 = st.columns(2)
+    with col1:
+        # ***DataFrame　年齢層別全体 ***
+        comp_age = df[['年代', '金額']].groupby('年代').sum() #年代で集計
 
-# ***DataFrame　年齢層別全体 ***
-comp_age = df[['年代', '金額']].groupby('年代').sum() #年代で集計
+        st.write('年齢構成比 全体')
+        st.dataframe(comp_age)
+    with col2:
+        # ***グラフ　年齢層別全体 ***
+        fig = go.Figure(
+            data=[
+                go.Pie(
+                    labels=comp_age.index,
+                    values=comp_age['金額'],
+                    )])
+        fig.update_layout(
+            showlegend=True, #凡例表示
+            height=150,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
+        st.plotly_chart(fig, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
-st.write('年齢構成比 全体')
-st.dataframe(comp_age)
+    with col1:
+        # ***年齢構成比　ダイニング***
+        st.write('年齢構成比 ダイニング')
 
-# ***グラフ　年齢層別全体 ***
-fig = go.Figure(
-    data=[
-        go.Pie(
-            labels=comp_age.index,
-            values=comp_age['金額'],
-            )])
-fig.update_layout(
-    showlegend=True, #凡例表示
-    height=200,
-    margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+        comp_dage = df[df['LD別']=='D'].groupby('年代')['金額'].sum()
+        st.dataframe(comp_dage)
+    with col2:
+        #グラフ　年齢別構成比　ダイニング
+        figd = go.Figure(
+            data=[
+                go.Pie(
+                    labels=comp_dage.index,
+                    values=comp_dage,
+                    )])
+        figd.update_layout(
+            showlegend=True, #凡例表示
+            height=150,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        figd.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
+        st.plotly_chart(figd, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    with col1:
+        # ***年齢構成比　リビング***
+        st.write('年齢構成比 リビング')
+
+        comp_lage = df[df['LD別']=='L'].groupby('年代')['金額'].sum()
+        st.dataframe(comp_lage)
+    
+    with col2:
+        #グラフ　年齢別構成比　リビング
+        figl = go.Figure(
+            data=[
+                go.Pie(
+                    labels=comp_lage.index,
+                    values=comp_lage,
+                    )])
+        figl.update_layout(
+            showlegend=True, #凡例表示
+            height=150,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        figl.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
+        st.plotly_chart(figl, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
+def seiriesbase_ageratio_d():
+
+    # ***シリーズベース　年代別構成比　ダイニング　全項目俯瞰 ***
+    st.write('シリーズベース　年代別構成比　ダイニング')
+    series_age_alld = pd.crosstab(df[df['LD別']=='D']['シリーズ名'], df[df['LD別']=='D']['年代'], values=df[df['LD別']=='D']['金額'], aggfunc='sum').fillna(0).astype('int64')
+
+    st.dataframe(series_age_alld)
+
+    # ***シリーズベース 年代別構成比 ダイニング***
+    st.write('ダイニング　シリーズベース年代別構成比')
+
+    comp_ageseries_d = df[df['LD別']=='D'].groupby(['シリーズ名', '年代'])['金額'].sum()
+    st.dataframe(comp_ageseries_d)
+    # selectbox
+    series_list_d = df[df['LD別']=='D']['シリーズ名'].unique()
+    option_d = st.selectbox(
+        'series:',
+        series_list_d,   
     )
-fig.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
-st.plotly_chart(fig, use_container_width=True) 
-#plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
-# ***年齢構成比　ダイニング***
-st.write('年齢構成比 ダイニング')
+    st.write('You selected: ', option_d)
 
-comp_dage = df[df['LD別']=='D'].groupby('年代')['金額'].sum()
-st.dataframe(comp_dage)
+    #グラフ　シリーズベース年代別構成比 ダイニング
+    series_age_d = df[(df['LD別']=='D')&(df['シリーズ名']==option_d)].groupby('年代').sum()
+    fig_das = go.Figure(
+        data=[
+            go.Pie(
+                labels=series_age_d.index,
+                values=df[(df['LD別']=='D')&(df['シリーズ名']==option_d)].groupby('年代')['金額'].sum(),
+                )])
+    fig_das.update_layout(
+        showlegend=True, #凡例表示
+        height=200,
+        margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+        )
+    fig_das.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
+    st.plotly_chart(fig_das, use_container_width=True) 
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
-#グラフ　年齢別構成比　ダイニング
-figd = go.Figure(
-    data=[
-        go.Pie(
-            labels=comp_dage.index,
-            values=comp_dage,
-            )])
-figd.update_layout(
-    showlegend=True, #凡例表示
-    height=200,
-    margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+def seiriesbase_ageratio_l():
+
+    # ***シリーズベース　年代別構成比　リビング　全項目俯瞰 ***
+    st.write('シリーズベース　年代別構成比　リビング')
+    series_age_alll = pd.crosstab(df[df['LD別']=='L']['シリーズ名'], df[df['LD別']=='L']['年代'], values=df[df['LD別']=='L']['金額'], aggfunc='sum').fillna(0).astype('int64')
+
+    st.dataframe(series_age_alll)
+    
+    # ***シリーズベース 年代別構成比 リビング***
+    st.write('リビング　シリーズベース年代別構成比')
+
+    comp_ageseries_l = df[df['LD別']=='L'].groupby(['シリーズ名', '年代'])['金額'].sum()
+    st.dataframe(comp_ageseries_l)
+
+    # selectbox
+    series_list_l = df[df['LD別']=='L']['シリーズ名'].unique()
+
+    option_l = st.selectbox(
+        'series:',
+        series_list_l,   
     )
-figd.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
-st.plotly_chart(figd, use_container_width=True) 
-#plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.write('You selected: ', option_l)
 
-# ***年齢構成比　リビング***
-st.write('年齢構成比 リビング')
+    #グラフ　シリーズベース 年代別構成比 リビング
+    series_age_l = df[(df['LD別']=='L')&(df['シリーズ名']==option_l)].groupby('年代').sum()
+    fig_las = go.Figure(
+        data=[
+            go.Pie(
+                labels=series_age_l.index,
+                values=df[(df['LD別']=='L')&(df['シリーズ名']==option_l)].groupby('年代')['金額'].sum(),
+                )])
+    fig_las.update_layout(
+        showlegend=True, #凡例表示
+        height=200,
+        margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+        )
+    fig_las.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
+    st.plotly_chart(fig_las, use_container_width=True) 
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
-comp_lage = df[df['LD別']=='L'].groupby('年代')['金額'].sum()
-st.dataframe(comp_lage)
+def agebase_seriesratio_d():
+    # *** 年齢ベース　シリーズ別構成比　ダイニング ***
+    st.write('年齢層ベース　シリーズ別構成比 ダイニング')
 
-#グラフ　年齢別構成比　リビング
-figl = go.Figure(
-    data=[
-        go.Pie(
-            labels=comp_lage.index,
-            values=comp_lage,
-            )])
-figl.update_layout(
-    showlegend=True, #凡例表示
-    height=200,
-    margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+    comp_agebase_d = df[df['LD別']=='D'].groupby(['年代', 'シリーズ名'])['金額'].sum()
+
+    # selectbox
+    series_list_aged = df[df['LD別']=='D']['年代'].unique()
+
+    option_aged = st.selectbox(
+        'series:',
+        series_list_aged,   
     )
-figl.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
-st.plotly_chart(figl, use_container_width=True) 
-#plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.write('You selected: ', option_aged)
 
-# ***シリーズベース　年代別構成比　ダイニング　全項目俯瞰 ***
+    #グラフ　年齢ベース　シリーズ別年代別構成比
+    series_names_d = df[(df['LD別']=='D')&(df['年代']==option_aged)].groupby('シリーズ名').sum()
+    fig_aged = go.Figure(
+        data=[
+            go.Pie(
+                labels=series_names_d.index,
+                values=df[(df['LD別']=='D')&(df['年代']==option_aged)].groupby('シリーズ名')['金額'].sum(),
+                )])
+    fig_aged.update_layout(
+        showlegend=True, #凡例表示
+        height=200,
+        margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+        )
+    fig_aged.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
+    st.plotly_chart(fig_aged, use_container_width=True) 
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
-series_age_all = pd.crosstab(df[df['LD別']=='D']['シリーズ名'], df[df['LD別']=='D']['年代'], values=df[df['LD別']=='D']['金額'], aggfunc='sum')
+    # ***年齢層ベース　シリーズ別構成比 リビング ***
+def agebase_seriesratio_l():
+    st.write('年齢層ベース　シリーズ別構成比 リビング')
 
-series_age_all.plot.bar(stacked=True)
+    comp_agebase_l = df[df['LD別']=='L'].groupby(['年代', 'シリーズ名'])['金額'].sum()
+    st.dataframe(comp_agebase_l)
 
-st.pyplot(series_age_all)
+    # selectbox
+    series_list_agel = df[df['LD別']=='L']['年代'].unique()
 
-# ***シリーズベース 年代別構成比 ダイニング***
-st.write('ダイニング　シリーズベース年代別構成比')
-
-comp_ageseries_d = df[df['LD別']=='D'].groupby(['シリーズ名', '年代'])['金額'].sum()
-st.dataframe(comp_ageseries_d)
-# selectbox
-series_list_d = df[df['LD別']=='D']['シリーズ名'].unique()
-option_d = st.selectbox(
-    'series:',
-    series_list_d,   
-)
-
-st.write('You selected: ', option_d)
-
-#グラフ　シリーズベース年代別構成比 ダイニング
-series_age_d = df[(df['LD別']=='D')&(df['シリーズ名']==option_d)].groupby('年代').sum()
-fig_das = go.Figure(
-    data=[
-        go.Pie(
-            labels=series_age_d.index,
-            values=df[(df['LD別']=='D')&(df['シリーズ名']==option_d)].groupby('年代')['金額'].sum(),
-            )])
-fig_das.update_layout(
-    showlegend=True, #凡例表示
-    height=200,
-    margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+    option_agel = st.selectbox(
+        'series:',
+        series_list_agel,   
     )
-fig_das.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
-st.plotly_chart(fig_das, use_container_width=True) 
-#plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
- 
-# ***シリーズベース 年代別構成比 リビング***
-st.write('リビング　シリーズベース年代別構成比')
+    st.write('You selected: ', option_agel)
 
-comp_ageseries_l = df[df['LD別']=='L'].groupby(['シリーズ名', '年代'])['金額'].sum()
-st.dataframe(comp_ageseries_l)
+    #グラフ　リビング　シリーズ別年代別構成比
+    series_names_l = df[(df['LD別']=='L')&(df['年代']==option_agel)].groupby('シリーズ名').sum()
+    fig_agel = go.Figure(
+        data=[
+            go.Pie(
+                labels=series_names_l.index,
+                values=df[(df['LD別']=='L')&(df['年代']==option_agel)].groupby('シリーズ名')['金額'].sum(),
+                )])
+    fig_agel.update_layout(
+        showlegend=True, #凡例表示
+        height=200,
+        margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+        )
+    fig_agel.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
+    st.plotly_chart(fig_agel, use_container_width=True) 
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
-# selectbox
-series_list_l = df[df['LD別']=='L']['シリーズ名'].unique()
+def person_ratio():
+    col1, col2 = st.columns(2)
+    # ***担当者別売り上げ ***
+    st.write('担当者別売り上げ')
 
-option_l = st.selectbox(
-    'series:',
-    series_list_l,   
-)
-st.write('You selected: ', option_l)
-
-#グラフ　シリーズベース 年代別構成比 リビング
-series_age_l = df[(df['LD別']=='L')&(df['シリーズ名']==option_l)].groupby('年代').sum()
-fig_las = go.Figure(
-    data=[
-        go.Pie(
-            labels=series_age_l.index,
-            values=df[(df['LD別']=='L')&(df['シリーズ名']==option_l)].groupby('年代')['金額'].sum(),
-            )])
-fig_las.update_layout(
-    showlegend=True, #凡例表示
-    height=200,
-    margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
-    )
-fig_las.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
-st.plotly_chart(fig_las, use_container_width=True) 
-#plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-
-
-# *** 年齢ベース　シリーズ別構成比　ダイニング ***
-st.write('年齢層ベース　シリーズ別構成比 ダイニング')
-
-comp_agebase_d = df[df['LD別']=='D'].groupby(['年代', 'シリーズ名'])['金額'].sum()
-st.dataframe(comp_agebase_d)
-
-# selectbox
-series_list_aged = df[df['LD別']=='D']['年代'].unique()
-
-option_aged = st.selectbox(
-    'series:',
-    series_list_aged,   
-)
-st.write('You selected: ', option_aged)
-
-#グラフ　年齢ベース　シリーズ別年代別構成比
-series_names_d = df[(df['LD別']=='D')&(df['年代']==option_aged)].groupby('シリーズ名').sum()
-fig_aged = go.Figure(
-    data=[
-        go.Pie(
-            labels=series_names_d.index,
-            values=df[(df['LD別']=='D')&(df['年代']==option_aged)].groupby('シリーズ名')['金額'].sum(),
-            )])
-fig_aged.update_layout(
-    showlegend=True, #凡例表示
-    height=200,
-    margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
-    )
-fig_aged.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
-st.plotly_chart(fig_aged, use_container_width=True) 
-#plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-
-# ***年齢層ベース　シリーズ別構成比 リビング ***
-
-st.write('年齢層ベース　シリーズ別構成比 リビング')
-
-comp_agebase_l = df[df['LD別']=='L'].groupby(['年代', 'シリーズ名'])['金額'].sum()
-st.dataframe(comp_agebase_l)
-
-# selectbox
-series_list_agel = df[df['LD別']=='L']['年代'].unique()
-
-option_agel = st.selectbox(
-    'series:',
-    series_list_agel,   
-)
-st.write('You selected: ', option_agel)
-
-#グラフ　リビング　シリーズ別年代別構成比
-series_names_l = df[(df['LD別']=='L')&(df['年代']==option_agel)].groupby('シリーズ名').sum()
-fig_agel = go.Figure(
-    data=[
-        go.Pie(
-            labels=series_names_l.index,
-            values=df[(df['LD別']=='L')&(df['年代']==option_agel)].groupby('シリーズ名')['金額'].sum(),
-            )])
-fig_agel.update_layout(
-    showlegend=True, #凡例表示
-    height=200,
-    margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
-    )
-fig_agel.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
-st.plotly_chart(fig_agel, use_container_width=True) 
-#plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-
-# ***担当者別売り上げ ***
-st.write('担当者別売り上げ')
-
-person = df.groupby('取引先担当')['金額'].sum()
-st.dataframe(person)
+    person = df.groupby('取引先担当')['金額'].sum()
+    st.dataframe(person)
 
 # 担当者別売上　グラフ
-fig_person = go.Figure()
-fig_person.add_trace(
-    go.Bar(
-        x=person.index,
-        y=person,
+    fig_person = go.Figure()
+    fig_person.add_trace(
+        go.Bar(
+            x=person.index,
+            y=person,
+            )
+    )
+    st.plotly_chart(fig_person, use_container_width=True) 
+
+    # ***担当者別売り上げ構成比 ***
+    st.write('担当者別売り上げ構成比')
+
+    #担当者別売上構成比　グラフ
+    fig_person_ratio = go.Figure(
+        data=[
+            go.Pie(
+                labels=person.index,
+                values=person,
+                )])
+    fig_person_ratio.update_layout(
+        showlegend=True, #凡例表示
+        height=200,
+        margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
         )
-)
-st.plotly_chart(fig_person, use_container_width=True) 
+    fig_person_ratio.update_traces(textposition='inside', textinfo='label+percent') 
+    #inside グラフ上にテキスト表示
+    st.plotly_chart(fig_person_ratio, use_container_width=True) 
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
-# ***担当者別売り上げ構成比 ***
-st.write('担当者別売り上げ構成比')
+    # *** 月別販売者数 ***
 
-#担当者別売上構成比　グラフ
-fig_person_ratio = go.Figure(
-    data=[
-        go.Pie(
-            labels=person.index,
-            values=person,
-            )])
-fig_person_ratio.update_layout(
-    showlegend=True, #凡例表示
-    height=200,
-    margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+    st.write('月別販売者数')
+
+    count_person = df.groupby('月')['取引先担当'].nunique()
+
+    #月別販売者数　グラフ
+    fig_count_person = go.Figure()
+    fig_count_person.add_trace(
+        go.Bar(
+            x=count_person.index,
+            y=count_person,
+            )
     )
-fig_person_ratio.update_traces(textposition='inside', textinfo='label+percent') 
-#inside グラフ上にテキスト表示
-st.plotly_chart(fig_person_ratio, use_container_width=True) 
-#plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig_count_person, use_container_width=True)
 
-# *** 月別販売者数 ***
+def personbase_series():
+    # ***販売者ベース　シリーズ売り上げ　ダイニング***
 
-st.write('月別販売者数')
+    st.write('販売者ベース　シリーズ別売り上げ　ダイニング')
+    # selectbox
+    person_series_dlist = df[df['LD別']=='D']['取引先担当'].unique()
 
-count_person = df.groupby('月')['取引先担当'].nunique()
+    op_person_series_dlist = st.selectbox(
+        'series:',
+        person_series_dlist,   
+    )
+    st.write('You selected: ', op_person_series_dlist)
 
-#月別販売者数　グラフ
-fig_count_person = go.Figure()
-fig_count_person.add_trace(
-    go.Bar(
-        x=count_person.index,
-        y=count_person,
+    #グラフ　販売者ベース　シリーズ売り上げ　ダイニング
+    series_names_d = df[(df['LD別']=='D')&(df['取引先担当']==op_person_series_dlist)].groupby('シリーズ名').sum()
+    fig_person_series_d = go.Figure(
+        data=[
+            go.Pie(
+                labels=series_names_d.index,
+                values=df[(df['LD別']=='D')&(df['取引先担当']==op_person_series_dlist)].groupby('シリーズ名')['金額'].sum(),
+                )])
+    fig_person_series_d.update_layout(
+        showlegend=True, #凡例表示
+        height=200,
+        margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
         )
-)
-st.plotly_chart(fig_count_person, use_container_width=True)
+    fig_person_series_d.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
+    st.plotly_chart(fig_person_series_d, use_container_width=True) 
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
-# ***販売者ベース　シリーズ売り上げ　ダイニング***
+    # ***販売者ベース　シリーズ売り上げ　リビング***
 
-st.write('販売者ベース　シリーズ別売り上げ　ダイニング')
-# selectbox
-person_series_dlist = df[df['LD別']=='D']['取引先担当'].unique()
+    st.write('販売者ベース　シリーズ別売り上げ　リビング')
+    # selectbox
+    person_series_llist = df[df['LD別']=='L']['取引先担当'].unique()
 
-op_person_series_dlist = st.selectbox(
-    'series:',
-    person_series_dlist,   
-)
-st.write('You selected: ', op_person_series_dlist)
-
-#グラフ　販売者ベース　シリーズ売り上げ　ダイニング
-series_names_d = df[(df['LD別']=='D')&(df['取引先担当']==op_person_series_dlist)].groupby('シリーズ名').sum()
-fig_person_series_d = go.Figure(
-    data=[
-        go.Pie(
-            labels=series_names_d.index,
-            values=df[(df['LD別']=='D')&(df['取引先担当']==op_person_series_dlist)].groupby('シリーズ名')['金額'].sum(),
-            )])
-fig_person_series_d.update_layout(
-    showlegend=True, #凡例表示
-    height=200,
-    margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+    op_person_series_llist = st.selectbox(
+        'series:',
+        person_series_llist,   
     )
-fig_person_series_d.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
-st.plotly_chart(fig_person_series_d, use_container_width=True) 
-#plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.write('You selected: ', op_person_series_llist)
 
-# ***販売者ベース　シリーズ売り上げ　リビング***
+    #グラフ　販売者ベース　シリーズ売り上げ　リビング
+    series_names_l = df[(df['LD別']=='L')&(df['取引先担当']==op_person_series_llist)].groupby('シリーズ名').sum()
+    fig_person_series_l = go.Figure(
+        data=[
+            go.Pie(
+                labels=series_names_l.index,
+                values=df[(df['LD別']=='L')&(df['取引先担当']==op_person_series_llist)].groupby('シリーズ名')['金額'].sum(),
+                )])
+    fig_person_series_l.update_layout(
+        showlegend=True, #凡例表示
+        height=200,
+        margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+        )
+    fig_person_series_l.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
+    st.plotly_chart(fig_person_series_l, use_container_width=True) 
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
-st.write('販売者ベース　シリーズ別売り上げ　リビング')
-# selectbox
-person_series_llist = df[df['LD別']=='L']['取引先担当'].unique()
+def main():
+    # アプリケーション名と対応する関数のマッピング
+    apps = {
+        '-': None,
+        '年齢構成比　全体/D／L': age_ratio,
+        'シリーズベース　年齢構成比 D': seiriesbase_ageratio_d,
+        'シリーズベース　年齢構成比 L': seiriesbase_ageratio_l,
+        '年齢ベース　シリーズ別構成比 D': agebase_seriesratio_d,
+        '年齢ベース　シリーズ別構成比 L': agebase_seriesratio_l,
+        '担当者別売上': person_ratio,
+        '担当者ベース　シリーズ別売上': personbase_series,
 
-op_person_series_llist = st.selectbox(
-    'series:',
-    person_series_llist,   
-)
-st.write('You selected: ', op_person_series_llist)
+    }
+    selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
+                                             options=list(apps.keys()))
 
-#グラフ　販売者ベース　シリーズ売り上げ　リビング
-series_names_l = df[(df['LD別']=='L')&(df['取引先担当']==op_person_series_llist)].groupby('シリーズ名').sum()
-fig_person_series_l = go.Figure(
-    data=[
-        go.Pie(
-            labels=series_names_l.index,
-            values=df[(df['LD別']=='L')&(df['取引先担当']==op_person_series_llist)].groupby('シリーズ名')['金額'].sum(),
-            )])
-fig_person_series_l.update_layout(
-    showlegend=True, #凡例表示
-    height=200,
-    margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
-    )
-fig_person_series_l.update_traces(textposition='inside', textinfo='label+percent') #inside グラフ上にテキスト表示
-st.plotly_chart(fig_person_series_l, use_container_width=True) 
-#plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    if selected_app_name == '-':
+        st.info('サイドバーから分析項目を選択してください')
+        st.stop()
+
+    # 選択されたアプリケーションを処理する関数を呼び出す
+    render_func = apps[selected_app_name]
+    render_func()
+
+if __name__ == '__main__':
+    main()
 
 
 
