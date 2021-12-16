@@ -8,7 +8,7 @@ import openpyxl
 from streamlit.state.session_state import Value
 
 st.set_page_config(page_title='test')
-st.title('売り上げ分析')
+st.title('売り上げ分析（全体）')
 st.subheader('エクセルファイルを読み込ませてください')
 
 # ***ファイルアップロード***
