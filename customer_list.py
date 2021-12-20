@@ -46,6 +46,27 @@ df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷�
 df_now_total = df_now['金額'].sum()
 df_last_total = df_last['金額'].sum()
 
+def earnings_comparison():
+    customer_list = df_now['得意先名'].unique()
+
+    index = []
+    earnings_now = []
+    earnings_last = []
+    comparison_rate = []
+
+    for customer in customer_list:
+        index.append(customer)
+        cust_earnings_total_now = df_now[df_now['得意先名']==customer]['金額'].sum()
+        cust_earnings_total_last = df_last[df_last['得意先名']==customer]['金額'].sum()
+        earnings_rate = f'{cust_earnings_total_now/cust_earnings_total_last*100: 0.1f} %'
+
+        earnings_now.append(cust_earnings_total_now)
+        earnings_last.append(cust_earnings_total_last)
+        comparison_rate.append(earnings_rate)
+    earnings_comparison_list = pd.DataFrame(list(zip(earnings_now, earnings_last, comparison_rate)), index=index, columns=['金額(今期)', '構成比(前期)', '対前年比'])    
+    st.dataframe(earnings_comparison_list)
+
+
 def ld_earnings_comp():
     customer_list = df_now['得意先名'].unique()
 
@@ -88,6 +109,7 @@ def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
+        '売り上げ/前年比': earnings_comparison,
         'LD　売り上げ/構成比': ld_earnings_comp,
         
     }

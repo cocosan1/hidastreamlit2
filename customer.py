@@ -58,18 +58,49 @@ df_now_cust =df_now[df_now['得意先名']==option_customer]
 df_last_cust =df_last[df_last['得意先名']==option_customer]
 df_now_cust_total = df_now_cust['金額'].sum()
 
-def earnings_comparison():
-    df_now_cust2 = df_now_cust.rename(columns={'金額': '今期'}) #inplace=True　内容変更する
-    df_now_cust_month = df_now_cust2.groupby('受注月')['今期'].sum()
-    df_last_cust2 = df_last_cust.rename(columns={'金額': '前期'})
-    df_last_cust_month = df_last_cust2.groupby('受注月')['前期'].sum()
+def earnings_comparison_year():
+    total_cust_now = df_now[df_now['得意先名']==option_customer]['金額'].sum()
+    total_cust_last = df_last[df_last['得意先名']==option_customer]['金額'].sum()
+    total_comparison = f'{total_cust_now / total_cust_last * 100: 0.1f} %'
     
-    df_cust_month = pd.concat([df_now_cust_month, df_last_cust_month], axis=1).fillna(0).astype('int64')
-    df_cust_month['対前年差'] = df_cust_month['今期'] - df_cust_month['前期']
-    df_cust_month['対前年比'] = df_cust_month['今期'] / df_cust_month['前期']*100
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric('今期売上', value= '{:,}'.format(total_cust_now))
+    with col2:
+        st.metric('前期売上', value= '{:,}'.format(total_cust_last))
+    with col3:
+        st.metric('対前年比', value= total_comparison)    
 
 
-    st.dataframe(df_cust_month)
+
+
+
+def earnings_comparison_month():
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    columns_list = ['今期', '前期', '対前年差', '対前年比']
+    df_now_cust = df_now[df_now['得意先名']==option_customer]
+    df_last_cust = df_last[df_last['得意先名']==option_customer]
+
+    earnings_now = []
+    earnings_last = []
+    earnings_diff = []
+    earnings_rate = []
+
+    for month in month_list:
+        earnings_month_now = df_now_cust[df_now_cust['出荷月'].isin([month])]['金額'].sum()
+        earnings_month_last = df_last_cust[df_last_cust['出荷月'].isin([month])]['金額'].sum()
+        earnings_diff_culc = earnings_month_now - earnings_month_last
+        earnings_rate_culc = f'{earnings_month_now / earnings_month_last * 100: 0.1f} %'
+
+        earnings_now.append('{:,}'.format(earnings_month_now))
+        earnings_last.append('{:,}'.format(earnings_month_last))
+        earnings_diff.append('{:,}'.format(earnings_diff_culc))
+        earnings_rate.append(earnings_rate_culc)
+
+    df_earnings_month = pd.DataFrame(list(zip(earnings_now, earnings_last, earnings_diff, earnings_rate)), columns=columns_list, index=month_list)
+
+    st.dataframe(df_earnings_month)
     
 def living_dining_comparison():
     st.subheader('LD　前年比/構成比')
@@ -344,7 +375,8 @@ def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        '売り上げ　対前年比': earnings_comparison,
+        '売上　対前年比': earnings_comparison_year,
+        '売り上げ　対前年比　月毎': earnings_comparison_month,
         'LD　前年比/構成比': living_dining_comparison,
         '商品分類別売り上げ 塗色/張地': color_fabric,
         'シリーズ別　売り上げ/構成比': series,
