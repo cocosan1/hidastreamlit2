@@ -72,10 +72,6 @@ def earnings_comparison_year():
     with col3:
         st.metric('対前年比', value= total_comparison)    
 
-
-
-
-
 def earnings_comparison_month():
     month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     columns_list = ['今期', '前期', '対前年差', '対前年比']
@@ -130,6 +126,125 @@ def living_dining_comparison():
         st.metric('リビング　(今期)',f'{living_now/df_now_cust_total*100:0.1f} %')
         st.metric('ダイニング　(今期)',f'{dining_now/df_now_cust_total*100:0.1f} %')
         st.metric('その他　(今期)',f'{else_now/df_now_cust_total*100:0.1f} %')
+
+
+
+def series():
+    # *** selectbox 商品分類2***
+    category = df_now['商品分類名2'].unique()
+    option_category = st.selectbox(
+        'category:',
+        category,   
+    ) 
+    st.write('選択した項目: ', option_category)
+    categorybase = df_now[df_now['商品分類名2']==option_category]
+    categorybase_cust = categorybase[categorybase['得意先名']== option_customer]
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # ***シリーズ別売り上げ ***
+        series = categorybase_cust.groupby('シリーズ名')['金額'].sum().sort_values(ascending=False).head(25) #降順
+        series2 = series.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+        # *** DF シリーズ別売り上げ ***
+        st.write('シリーズ別売上')
+        st.dataframe(series2)
+
+    with col2:
+        # グラフ　シリーズ別売り上げ構成比
+        st.write('グラフ　シリーズ別売り上げ構成比')
+        fig_series_ratio = go.Figure(
+            data=[
+                go.Pie(
+                    labels=series.index,
+                    values=series
+                    )])
+        fig_series_ratio.update_layout(
+            showlegend=True, #凡例表示
+            height=200,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_series_ratio.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_series_ratio, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
+    # グラフ　シリーズ別売り上げ
+    st.write('グラフ　シリーズ別売上')
+    fig_series = go.Figure()
+    fig_series.add_trace(
+        go.Bar(
+            x=series.index,
+            y=series,
+            )
+    )
+    fig_series.update_layout(
+        height=500,
+        width=2000,
+    )        
+    
+    st.plotly_chart(fig_series, use_container_width=True)
+
+def item_count_series():
+    # *** selectbox 得意先名***
+    series = df_now_cust['シリーズ名'].unique()
+    option_series = st.selectbox(
+    'シリーズ名:',
+    series,   
+    )    
+    st.write('選択したシリーズ名: ', option_series)
+
+    index = []
+    count_now = []
+    count_last = []
+    diff = []
+
+    df_now_cust_series = df_now_cust[df_now_cust['シリーズ名']==option_series]
+    df_last_cust_series = df_last_cust[df_last_cust['シリーズ名']==option_series]
+    categories = df_now_cust[df_now_cust['シリーズ名']==option_series]['商品分類名2'].unique()
+    for category in categories:
+        index.append(category)
+        month_len = len(df_now['受注月'].unique())
+        df_now_cust_series_count_culc = df_now_cust_series[df_now_cust_series['商品分類名2']==category]['数量'].sum()
+        df_last_cust_series_count_culc = df_last_cust_series[df_last_cust_series['商品分類名2']==category]['数量'].sum()
+
+        count_now.append(f'{df_now_cust_series_count_culc/month_len: 0.1f}')
+        count_last.append(f'{df_last_cust_series_count_culc/month_len: 0.1f}')
+        diff.append(f'{(df_now_cust_series_count_culc/month_len) - (df_last_cust_series_count_culc/month_len):0.1f}')
+
+    st.write('回転数/月')
+    df_item_count = pd.DataFrame(list(zip(count_now, count_last, diff)), index=index, columns=['今期', '前期', '対前年差'])
+    st.dataframe(df_item_count, width=500) #列幅問題未解決
+
+def item_count_category():
+    # *** selectbox 得意先名***
+    categories = df_now_cust['商品分類名2'].unique()
+    option_categories = st.selectbox(
+    '商品分類名2:',
+    categories,   
+    )    
+    st.write('選択したシリーズ名: ', option_categories)
+
+    index = []
+    count_now = []
+    count_last = []
+    diff = []
+
+    df_now_cust_categories = df_now_cust[df_now_cust['商品分類名2']==option_categories]
+    df_last_cust_categories = df_last_cust[df_last_cust['商品分類名2']==option_categories]
+    series_list = df_now_cust[df_now_cust['商品分類名2']==option_categories]['シリーズ名'].unique()
+    for series in series_list:
+        index.append(series)
+        month_len = len(df_now['受注月'].unique())
+        df_now_cust_categories_count_culc = df_now_cust_categories[df_now_cust_categories['シリーズ名']==series]['数量'].sum()
+        df_last_cust_categories_count_culc = df_last_cust_categories[df_last_cust_categories['シリーズ名']==series]['数量'].sum()
+        count_now.append(f'{df_now_cust_categories_count_culc/month_len: 0.1f}')
+        count_last.append(f'{df_last_cust_categories_count_culc/month_len: 0.1f}')
+        diff.append(f'{(df_now_cust_categories_count_culc/month_len) - (df_last_cust_categories_count_culc/month_len):0.1f}')
+
+    st.write('回転数/月')
+    df_item_count = pd.DataFrame(list(zip(count_now, count_last, diff)), index=index, columns=['今期', '前期', '対前年差'])
+    st.dataframe(df_item_count, width=500) #列幅問題未解決
 
 def color_fabric():
     # *** selectbox 商品分類2***
@@ -202,62 +317,6 @@ def color_fabric():
         #inside グラフ上にテキスト表示
         st.plotly_chart(fig_fabric, use_container_width=True) 
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-
-def series():
-    # *** selectbox 商品分類2***
-    category = df_now['商品分類名2'].unique()
-    option_category = st.selectbox(
-        'category:',
-        category,   
-    ) 
-    st.write('選択した項目: ', option_category)
-    categorybase = df_now[df_now['商品分類名2']==option_category]
-    categorybase_cust = categorybase[categorybase['得意先名']== option_customer]
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        # ***シリーズ別売り上げ ***
-        series = categorybase_cust.groupby('シリーズ名')['金額'].sum().sort_values(ascending=False).head(25) #降順
-        series2 = series.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
-        # *** DF シリーズ別売り上げ ***
-        st.write('シリーズ別売上')
-        st.dataframe(series2)
-
-    with col2:
-        # グラフ　シリーズ別売り上げ構成比
-        st.write('グラフ　シリーズ別売り上げ構成比')
-        fig_series_ratio = go.Figure(
-            data=[
-                go.Pie(
-                    labels=series.index,
-                    values=series
-                    )])
-        fig_series_ratio.update_layout(
-            showlegend=True, #凡例表示
-            height=200,
-            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
-            )
-        fig_series_ratio.update_traces(textposition='inside', textinfo='label+percent') 
-        #inside グラフ上にテキスト表示
-        st.plotly_chart(fig_series_ratio, use_container_width=True) 
-        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-
-    # グラフ　シリーズ別売り上げ
-    st.write('グラフ　シリーズ別売上')
-    fig_series = go.Figure()
-    fig_series.add_trace(
-        go.Bar(
-            x=series.index,
-            y=series,
-            )
-    )
-    fig_series.update_layout(
-        height=500,
-        width=2000,
-    )        
-    
-    st.plotly_chart(fig_series, use_container_width=True)
 
 def series_col_fab():
     # *** selectbox 商品分類2***
@@ -378,8 +437,10 @@ def main():
         '売上　対前年比': earnings_comparison_year,
         '売り上げ　対前年比　月毎': earnings_comparison_month,
         'LD　前年比/構成比': living_dining_comparison,
-        '商品分類別売り上げ 塗色/張地': color_fabric,
         'シリーズ別　売り上げ/構成比': series,
+        'シリーズ別　回転数': item_count_series,
+        '商品分類別　回転数': item_count_category,
+        '商品分類別売り上げ 塗色/張地': color_fabric,
         '商品分類別シリーズ別　塗色/張地': series_col_fab,
         '商品分類別シリーズ別　塗色/張地　詳細': series_col_fab2,
         '比率　北海道工場/節あり材/国産材': hokkaido_fushi_kokusanzai,
@@ -393,6 +454,10 @@ def main():
     if selected_app_name == '-':
         st.info('サイドバーから分析項目を選択してください')
         st.stop()
+
+    link = '[home](http://linkpagetest.s3-website-ap-northeast-1.amazonaws.com/)'
+    st.sidebar.markdown(link, unsafe_allow_html=True)
+    st.sidebar.caption('homeに戻る')    
 
     # 選択されたアプリケーションを処理する関数を呼び出す
     render_func = apps[selected_app_name]

@@ -7,8 +7,8 @@ import plotly.graph_objects as go
 import openpyxl
 from streamlit.state.session_state import Value
 
-st.set_page_config(page_title='test')
-st.title('売り上げ分析（全体）')
+st.set_page_config(page_title='売上分析（全体）')
+st.title('売上分析（全体）')
 st.subheader('エクセルファイルを読み込ませてください')
 
 # ***ファイルアップロード***
@@ -268,6 +268,9 @@ def main():
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
                                              options=list(apps.keys()))
+    link = '[home](http://linkpagetest.s3-website-ap-northeast-1.amazonaws.com/)'
+    st.sidebar.markdown(link, unsafe_allow_html=True)
+    st.sidebar.caption('homeに戻る')                                       
 
     if selected_app_name == '-':
         st.info('サイドバーから分析項目を選択してください')
