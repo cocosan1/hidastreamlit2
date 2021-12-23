@@ -9,25 +9,19 @@ import openpyxl
 from streamlit.state.session_state import Value
 
 st.set_page_config(page_title='売り上げ分析（得意先別一覧）')
-st.title('売り上げ分析（得意先別一覧）')
+st.markdown('#### 売り上げ分析（得意先別一覧）')
 
 # ***ファイルアップロード 今期***
-st.subheader('今期のエクセルファイルを読み込ませてください')
-
-uploaded_file_now = st.file_uploader('Choose a XLSX file', type='xlsx', key='now')
+uploaded_file_now = st.sidebar.file_uploader('今期', type='xlsx', key='now')
 df_now = DataFrame()
 if uploaded_file_now:
-    st.markdown('---')
     df_now = pd.read_excel(
     uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
 
 # ***ファイルアップロード　前期***
-st.subheader('前期のエクセルファイルを読み込ませてください')
-
-uploaded_file_last = st.file_uploader('Choose a XLSX file', type='xlsx', key='last')
+uploaded_file_last = st.sidebar.file_uploader('前期', type='xlsx', key='last')
 df_last = DataFrame()
 if uploaded_file_last:
-    st.markdown('---')
     df_last = pd.read_excel(
     uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52])
 
@@ -146,12 +140,12 @@ def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        '売り上げ/前年比　累計': earnings_comparison,
-        '売上/前年比　月単位': earnings_comparison_month,
-        'LD構成比': ld_earnings_comp,
+        '★売上/前年比(累計)': earnings_comparison,
+        '★売上/前年比(月単位)': earnings_comparison_month,
+        '★LD構成比': ld_earnings_comp,
         
     }
-    selected_app_name = st.sidebar.selectbox(label='得意先の選択',
+    selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
                                              options=list(apps.keys()))
 
     if selected_app_name == '-':

@@ -6,10 +6,11 @@ import plotly.figure_factory as ff
 import plotly.graph_objects as go
 
 st.set_page_config(page_title='売り上げ分析（年齢層）')
-st.title('売り上げ分析（年齢層）')
+st.markdown('#### 売り上げ分析（年齢層）')
 st.subheader('Feed me with your Excel File')
 
 # ***ファイルアップロード***
+st.markdown('###### エクセルファイルを読み込ませてください')
 uploaded_file = st.file_uploader('Choose a XLSX file', type='xlsx')
 df = DataFrame()
 if uploaded_file:
@@ -358,13 +359,13 @@ def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        '年齢構成比　全体/D／L': age_ratio,
-        'シリーズベース　年齢構成比 D': seiriesbase_ageratio_d,
-        'シリーズベース　年齢構成比 L': seiriesbase_ageratio_l,
-        '年齢ベース　シリーズ別構成比 D': agebase_seriesratio_d,
-        '年齢ベース　シリーズ別構成比 L': agebase_seriesratio_l,
+        '年齢構成比 全体/D／L': age_ratio,
+        'シリーズベース 年齢構成比 D': seiriesbase_ageratio_d,
+        'シリーズベース 年齢構成比 L': seiriesbase_ageratio_l,
+        '年齢ベース シリーズ別構成比 D': agebase_seriesratio_d,
+        '年齢ベース シリーズ別構成比 L': agebase_seriesratio_l,
         '担当者別売上': person_ratio,
-        '担当者ベース　シリーズ別売上': personbase_series,
+        '担当者ベース シリーズ別売上': personbase_series,
 
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
