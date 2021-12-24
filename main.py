@@ -474,15 +474,15 @@ def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        '★売上 前年比': earnings_comparison_year,
-        '★比率 リビング/ダイニング' :living_dining_latio,
-        '★比率 北海道工場/節材': hokkaido_fushi_kokusanzai,
-        '★粗利/売上 きつつき森の研究所': profit_aroma,
-        '★塗色別 売上/構成比 (商品分類別)': color,
-        '★張地別 売上/構成比 (商品分類別)': fabric,
-        '★シリーズ別 売上/構成比': series,
-        '★売れ筋ランキング　商品分類別/シリーズ別 塗色/張地': series_col_fab,
-        '★張地ランキング 商品分類別/シリーズ別/塗色別': series_col_fab2,
+        '売上 前年比●': earnings_comparison_year,
+        '比率 リビング/ダイニング●' :living_dining_latio,
+        '比率 北海道工場/節材●': hokkaido_fushi_kokusanzai,
+        '粗利/売上 きつつき森の研究所●': profit_aroma,
+        '塗色別 売上/構成比 (商品分類別)●': color,
+        '張地別 売上/構成比 (商品分類別)●': fabric,
+        'シリーズ別 売上/構成比●': series,
+        '売れ筋ランキング 商品分類別/シリーズ別 塗色/張地●': series_col_fab,
+        '張地ランキング 商品分類別/シリーズ別/塗色別●': series_col_fab2,
         
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',

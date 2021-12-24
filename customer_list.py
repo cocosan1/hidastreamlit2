@@ -70,7 +70,6 @@ def earnings_comparison_month():
     '受注月:',
     month,   
 ) 
-    st.write('選択した受注月: ', option_month)
     customer_list = df_now['得意先名'].unique()
 
     index = []
@@ -136,13 +135,55 @@ def ld_earnings_comp():
     df_earnings_list = pd.DataFrame(list(zip(l_comp, d_comp, o_comp)), index=index, columns=['L', 'D', 'その他'])
     st.dataframe(df_earnings_list)
 
+def hokkaido_fiushi_kokusan_comp(): #作成中
+    customer_list = df_now['得意先名'].unique()
+
+    index = []
+    hokkaido = [] #北海道売り上げ
+    hokkaido_comp = [] #北海道比率
+
+    fushi = [] #節売り上げ
+    fushi_comp = [] #節比率
+
+    kokusan = [] #国産売り上げ
+    kokusan_comp = [] #国産比率
+
+    for customer in customer_list:
+        index.append(customer)
+
+        df_now_cust = df_now[df_now['得意先名']==customer]
+
+        df_now_cust_sum = df_now_cust['金額'].sum() #得意先売り上げ合計
+
+        now_cust_sum_h = df_now_cust[df_now_cust['出荷倉庫']==510]['金額'].sum()
+        hokkaido.append('{:,}'.format(now_cust_sum_h))
+        hokkaido_comp_culc = f'{now_cust_sum_h/df_now_cust_sum*100:0.1f} %'
+        hokkaido_comp.append(hokkaido_comp_culc)
+
+        now_cust_sum_fushi = df_now_cust[df_now_cust['シリーズ名'].isin(['森のことば', 'LEVITA (ﾚｳﾞｨﾀ)', '森の記憶', 'とき葉', 
+        '森のことばIBUKI', '森のことば ウォルナット'])]['金額'].sum()
+        fushi.append('{:,}'.format(now_cust_sum_fushi))
+        fushi_comp_culc = f'{now_cust_sum_fushi/df_now_cust_sum*100:0.1f} %'
+        fushi_comp.append(fushi_comp_culc)
+
+        now_cust_sum_kokusan = df_now_cust[df_now_cust['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
+        '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum()
+        kokusan.append('{:,}'.format(now_cust_sum_kokusan))
+        kokusan_comp_culc = f'{now_cust_sum_kokusan/df_now_cust_sum*100:0.1f} %'
+        kokusan_comp.append(kokusan_comp_culc)
+
+    st.write('構成比')
+    df_comp_list = pd.DataFrame(list(zip(hokkaido_comp, fushi_comp, kokusan_comp)), index=index, columns=['北海道工場', '節材', '国産材'])
+    st.dataframe(df_comp_list, width=2000)    
+
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        '★売上/前年比(累計)': earnings_comparison,
-        '★売上/前年比(月単位)': earnings_comparison_month,
-        '★LD構成比': ld_earnings_comp,
+        '売上/前年比(累計)●': earnings_comparison,
+        '売上/前年比(月毎)●': earnings_comparison_month,
+        '構成比 LD●': ld_earnings_comp,
+        '構成比 北海道/節/国産': hokkaido_fiushi_kokusan_comp,
         
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',

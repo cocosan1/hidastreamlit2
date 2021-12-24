@@ -281,7 +281,36 @@ def series():
         fig_series_ratio_last.update_traces(textposition='inside', textinfo='label+percent') 
         #inside グラフ上にテキスト表示
         st.plotly_chart(fig_series_ratio_last, use_container_width=True) 
-        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅    
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
+def item_count_category():
+    # *** selectbox 得意先名***
+    categories = df_now_cust['商品分類名2'].unique()
+    option_categories = st.selectbox(
+    '商品分類名2:',
+    categories,   
+    )    
+
+    index = []
+    count_now = []
+    count_last = []
+    diff = []
+
+    df_now_cust_categories = df_now_cust[df_now_cust['商品分類名2']==option_categories]
+    df_last_cust_categories = df_last_cust[df_last_cust['商品分類名2']==option_categories]
+    series_list = df_now_cust[df_now_cust['商品分類名2']==option_categories]['シリーズ名'].unique()
+    for series in series_list:
+        index.append(series)
+        month_len = len(df_now['受注月'].unique())
+        df_now_cust_categories_count_culc = df_now_cust_categories[df_now_cust_categories['シリーズ名']==series]['数量'].sum()
+        df_last_cust_categories_count_culc = df_last_cust_categories[df_last_cust_categories['シリーズ名']==series]['数量'].sum()
+        count_now.append(f'{df_now_cust_categories_count_culc/month_len: 0.1f}')
+        count_last.append(f'{df_last_cust_categories_count_culc/month_len: 0.1f}')
+        diff.append(f'{(df_now_cust_categories_count_culc/month_len) - (df_last_cust_categories_count_culc/month_len):0.1f}')
+
+    st.write('回転数/月平均')
+    df_item_count = pd.DataFrame(list(zip(count_now, count_last, diff)), index=index, columns=['今期', '前期', '対前年差'])
+    st.table(df_item_count) #列幅問題未解決   
 
 def item_count_series():
     # *** selectbox 得意先名***
@@ -310,39 +339,60 @@ def item_count_series():
         count_last.append(f'{df_last_cust_series_count_culc/month_len: 0.1f}')
         diff.append(f'{(df_now_cust_series_count_culc/month_len) - (df_last_cust_series_count_culc/month_len):0.1f}')
 
-    st.write('回転数/月')
+    st.write('回転数/月平均')
     df_item_count = pd.DataFrame(list(zip(count_now, count_last, diff)), index=index, columns=['今期', '前期', '対前年差'])
     st.table(df_item_count) #列幅問題未解決
 
-def item_count_category():
-    # *** selectbox 得意先名***
-    categories = df_now_cust['商品分類名2'].unique()
-    option_categories = st.selectbox(
-    '商品分類名2:',
-    categories,   
-    )    
-    st.write('選択したシリーズ名: ', option_categories)
-
-    index = []
+def category_count_month():
+    #　回転数 商品分類別 月毎
+    # *** selectbox シリーズ名***
+    category_list = df_now_cust['商品分類名2'].unique()
+    option_category = st.selectbox(
+    '商品分類名:',
+    category_list,   
+    ) 
+    df_now_cust_category = df_now_cust[df_now_cust['商品分類名2']==option_category]
+    
+    months = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     count_now = []
-    count_last = []
-    diff = []
+    series_list = df_now_cust_category['シリーズ名'].unique()
+    df_count = pd.DataFrame(index=series_list)
+    for month in months:
+        for series in series_list:
+            df_now_cust_category_ser = df_now_cust_category[df_now_cust_category['シリーズ名']==series]
+            count = df_now_cust_category_ser[df_now_cust_category_ser['受注月']==month]['数量'].sum()
+            count_now.append(count)
+        df_count[month] = count_now
+        count_now = []
+    st.caption('今期')
+    st.table(df_count)
 
-    df_now_cust_categories = df_now_cust[df_now_cust['商品分類名2']==option_categories]
-    df_last_cust_categories = df_last_cust[df_last_cust['商品分類名2']==option_categories]
-    series_list = df_now_cust[df_now_cust['商品分類名2']==option_categories]['シリーズ名'].unique()
-    for series in series_list:
-        index.append(series)
-        month_len = len(df_now['受注月'].unique())
-        df_now_cust_categories_count_culc = df_now_cust_categories[df_now_cust_categories['シリーズ名']==series]['数量'].sum()
-        df_last_cust_categories_count_culc = df_last_cust_categories[df_last_cust_categories['シリーズ名']==series]['数量'].sum()
-        count_now.append(f'{df_now_cust_categories_count_culc/month_len: 0.1f}')
-        count_last.append(f'{df_last_cust_categories_count_culc/month_len: 0.1f}')
-        diff.append(f'{(df_now_cust_categories_count_culc/month_len) - (df_last_cust_categories_count_culc/month_len):0.1f}')
 
-    st.write('回転数/月')
-    df_item_count = pd.DataFrame(list(zip(count_now, count_last, diff)), index=index, columns=['今期', '前期', '対前年差'])
-    st.table(df_item_count) #列幅問題未解決
+
+def series_count_month():
+    #　回転数 商品分類別 月毎
+    # *** selectbox シリーズ名***
+    series_list = df_now_cust['シリーズ名'].unique()
+    option_series = st.selectbox(
+    'シリーズ名:',
+    series_list,   
+    ) 
+    df_now_cust_series = df_now_cust[df_now_cust['シリーズ名']==option_series]
+    
+    months = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    count_now = []
+    df_now_cust_series = df_now_cust[df_now_cust['シリーズ名']==option_series]
+    categories = df_now_cust_series['商品分類名2'].unique()
+    df_count = pd.DataFrame(index=categories)
+    for month in months:
+        for category in categories:
+            df_now_cust_series_cat = df_now_cust_series[df_now_cust_series['商品分類名2']==category]
+            count = df_now_cust_series_cat[df_now_cust_series_cat['受注月']==month]['数量'].sum()
+            count_now.append(count)
+        df_count[month] = count_now
+        count_now = []
+    st.caption('今期')
+    st.table(df_count)   
 
 def living_dining_latio():
     col1, col2, col3 = st.columns(3)
@@ -662,18 +712,20 @@ def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        '★売上 対前年比(累計)': earnings_comparison_year,
-        '★売上 対前年比(月毎)': earnings_comparison_month,
-        '★LD 前年比/構成比': living_dining_comparison,
-        '★シリーズ別 売上/構成比': series,
-        '★回転数 シリーズ別': item_count_series,
-        '★回転数 商品分類別': item_count_category,
-        '★比率 リビング/ダイニング': living_dining_latio,
-        '★比率 北海道工場/節あり材/国産材': hokkaido_fushi_kokusanzai, #北海道　今期〇　前期×　節　今期〇　前期〇　国　今期〇　前期〇　
-        '★比率 粗利/アロマ関連': profit_aroma,
-        '★塗色別 売上/構成比': category_color,
-        '★張地別 売上/構成比': category_fabric,
-        '★売れ筋ランキング 商品分類別/塗色/張地': series_col_fab,
+        '★売上 対前年比(累計)●': earnings_comparison_year,
+        '★売上 対前年比(月毎)●': earnings_comparison_month,
+        '★LD 前年比/構成比●': living_dining_comparison,
+        '★シリーズ別 売上/構成比●': series,
+        '★回転数 商品分類別●': item_count_category,
+        '回転数 シリーズ別●': item_count_series,
+        '★回転数 商品分類別 月毎●': category_count_month,
+        '回転数 シリーズ別 月毎●': series_count_month,
+        '比率 リビング/ダイニング●': living_dining_latio,
+        '★比率 北海道工場/節あり材/国産材●': hokkaido_fushi_kokusanzai, 
+        '★比率 粗利/アロマ関連●': profit_aroma,
+        '塗色別 売上/構成比●': category_color,
+        '張地別 売上/構成比●': category_fabric,
+        '売れ筋ランキング 商品分類別/塗色/張地●': series_col_fab,
   
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
