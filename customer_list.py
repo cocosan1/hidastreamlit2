@@ -174,7 +174,34 @@ def hokkaido_fiushi_kokusan_comp(): #作成中
 
     st.write('構成比')
     df_comp_list = pd.DataFrame(list(zip(hokkaido_comp, fushi_comp, kokusan_comp)), index=index, columns=['北海道工場', '節材', '国産材'])
-    st.dataframe(df_comp_list, width=2000)    
+    st.dataframe(df_comp_list, width=2000)
+
+def profit_aroma():
+    customer_list = df_now['得意先名'].unique()
+
+    index = []
+    profit = [] #粗利
+    profit_ratio = [] #粗利率
+
+    aroma = [] #アロマ売り上げ
+
+    for customer in customer_list:
+        index.append(customer)
+
+        df_now_cust = df_now[df_now['得意先名']==customer]
+
+        df_now_cust_sum = df_now_cust['金額'].sum() #得意先売り上げ合計
+
+        now_cust_sum_profit = df_now_cust['原価金額'].sum()
+        profit_ratio_culc = f'{(df_now_cust_sum - now_cust_sum_profit)/df_now_cust_sum*100:0.1f} %'
+        profit_ratio.append(profit_ratio_culc)
+
+        now_cust_sum_aroma = df_now_cust[df_now_cust['シリーズ名'].isin(['きつつき森の研究所'])]['金額'].sum()
+        aroma.append('{:,}'.format(now_cust_sum_aroma))
+
+    df_comp_list = pd.DataFrame(list(zip(profit_ratio, aroma)), index=index, columns=['粗利率', 'きつつきの森研究所'])
+    st.dataframe(df_comp_list)
+            
 
 def main():
     # アプリケーション名と対応する関数のマッピング
@@ -183,7 +210,8 @@ def main():
         '売上/前年比(累計)●': earnings_comparison,
         '売上/前年比(月毎)●': earnings_comparison_month,
         '構成比 LD●': ld_earnings_comp,
-        '構成比 北海道/節/国産': hokkaido_fiushi_kokusan_comp,
+        '構成比 北海道/節/国産●': hokkaido_fiushi_kokusan_comp,
+        '比率 粗利/アロマ関連●': profit_aroma,
         
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
