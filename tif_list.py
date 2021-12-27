@@ -44,198 +44,111 @@ def original_ratio():
     customer_list = df_now['得意先名'].unique()
 
     index = []
-    earnings_now = []
-    earnings_last = []
-    comparison_rate = []
-    comparison_diff = []
+    original_now = []
+    original_last = []
+    original_rate_now = []
+    original_rate_last = []
+    original_rate__diff = []
 
     for customer in customer_list:
         index.append(customer)
-        cust_earnings_total_now = df_now[df_now['得意先名']==customer]['金額'].sum()
-        cust_earnings_total_last = df_last[df_last['得意先名']==customer]['金額'].sum()
-        earnings_rate_culc = f'{cust_earnings_total_now/cust_earnings_total_last*100: 0.1f} %'
-        comaparison_diff_culc = cust_earnings_total_now - cust_earnings_total_last
-
-        earnings_now.append(cust_earnings_total_now)
-        earnings_last.append(cust_earnings_total_last)
-        comparison_rate.append(earnings_rate_culc)
-        comparison_diff.append(comaparison_diff_culc)
-    earnings_comparison_list = pd.DataFrame(list(zip(earnings_now, earnings_last, comparison_rate, comparison_diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])    
-    st.dataframe(earnings_comparison_list)
-
-
-def earnings_comparison():
-    customer_list = df_now['得意先名'].unique()
-
-    index = []
-    earnings_now = []
-    earnings_last = []
-    comparison_rate = []
-    comparison_diff = []
-
-    for customer in customer_list:
-        index.append(customer)
-        cust_earnings_total_now = df_now[df_now['得意先名']==customer]['金額'].sum()
-        cust_earnings_total_last = df_last[df_last['得意先名']==customer]['金額'].sum()
-        earnings_rate_culc = f'{cust_earnings_total_now/cust_earnings_total_last*100: 0.1f} %'
-        comaparison_diff_culc = cust_earnings_total_now - cust_earnings_total_last
-
-        earnings_now.append(cust_earnings_total_now)
-        earnings_last.append(cust_earnings_total_last)
-        comparison_rate.append(earnings_rate_culc)
-        comparison_diff.append(comaparison_diff_culc)
-    earnings_comparison_list = pd.DataFrame(list(zip(earnings_now, earnings_last, comparison_rate, comparison_diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])    
-    st.dataframe(earnings_comparison_list)
-
-def earnings_comparison_month():
-    # *** selectbox 得意先名***
-    month = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    option_month = st.selectbox(
-    '受注月:',
-    month,   
-) 
-    customer_list = df_now['得意先名'].unique()
-
-    index = []
-    earnings_now = []
-    earnings_last = []
-    comparison_rate = []
-    comparison_diff = []
-
-    df_now_month = df_now[df_now['受注月']==option_month]
-    df_last_month = df_last[df_last['受注月']==option_month]
-
-    for customer in customer_list:
-        index.append(customer)
-        cust_earnings_total_now_month = df_now_month[df_now_month['得意先名']==customer]['金額'].sum()
-        cust_earnings_total_last_month = df_last_month[df_last_month['得意先名']==customer]['金額'].sum()
-        earnings_rate_culc = f'{cust_earnings_total_now_month/cust_earnings_total_last_month *100: 0.1f} %'
-        comaparison_diff_culc = cust_earnings_total_now_month - cust_earnings_total_last_month
-
-        earnings_now.append(cust_earnings_total_now_month)
-        earnings_last.append(cust_earnings_total_last_month)
-        comparison_rate.append(earnings_rate_culc)
-        comparison_diff.append(comaparison_diff_culc)
-    earnings_comparison_list = pd.DataFrame(list(zip(earnings_now, earnings_last, comparison_rate, comparison_diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])    
-    st.dataframe(earnings_comparison_list)
-
-
-def ld_earnings_comp():
-    customer_list = df_now['得意先名'].unique()
-
-    index = []
-    l_earnings = [] #リニング売り上げ
-    l_comp = [] #リビング比率
-
-    d_earnings = [] #ダイニング売り上げ
-    d_comp = [] #ダイニング比率
-
-    o_earnings = [] #その他売り上げ
-    o_comp = [] #その他比率
-
-    for customer in customer_list:
-        index.append(customer)
-
         df_now_cust = df_now[df_now['得意先名']==customer]
+        df_last_cust = df_last[df_last['得意先名']==customer]
+        cust_total_now = df_now_cust['金額'].sum()
+        cust_total_last = df_last_cust['金額'].sum()
+        original_now_culc = df_now_cust[df_now_cust['シリーズ名'].isin(['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ'])]['金額'].sum()
+        original_last_culc = df_last_cust[df_last_cust['シリーズ名'].isin(['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ'])]['金額'].sum()
+        original_rate_now_culc = f'{(original_now_culc / cust_total_now)*100: 0.1f} %'
+        original_rate_last_culc = f'{(original_last_culc / cust_total_last)*100: 0.1f} %'
+        original_rate_diff_culc = f'{((original_now_culc / cust_total_now) - (original_last_culc / cust_total_last))*100: 0.1f} %'
+        
+        original_now.append('{:,}'.format(original_now_culc))
+        original_last.append('{:,}'.format(original_last_culc))
+        original_rate_now.append(original_rate_now_culc)
+        original_rate_last.append(original_rate_last_culc)
+        original_rate__diff.append(original_rate_diff_culc)
+        
+    original_rate_list = pd.DataFrame(list(zip(original_now, original_last, original_rate_now, original_rate_last, original_rate__diff)), index=index, columns=['今期売上', '前期売上', '今期比率', '前期比率', '対前年差'])
+    st.markdown('###### オリジナル比率')   
+    st.dataframe(original_rate_list)
 
-        df_now_cust_sum = df_now_cust['金額'].sum() #得意先売り上げ合計
-
-        df_now_cust_sum_l = df_now_cust[df_now_cust['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]['金額'].sum()
-        l_earnings.append('{:,}'.format(df_now_cust_sum_l))
-        l_comp_culc = f'{df_now_cust_sum_l/df_now_cust_sum*100:0.1f} %'
-        l_comp.append(l_comp_culc)
-
-        df_now_cust_sum_d = df_now_cust[df_now_cust['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]['金額'].sum()
-        d_earnings.append('{:,}'.format(df_now_cust_sum_d))
-        d_comp_culc = f'{df_now_cust_sum_d/df_now_cust_sum*100:0.1f} %'
-        d_comp.append(d_comp_culc)
-
-        df_now_cust_sum_o = df_now_cust[df_now_cust['商品分類名2'].isin(['キャビネット類', 'その他テーブル', '雑品・特注品', 'その他椅子', 'デスク', '小物・その他'])]['金額'].sum()
-        o_earnings.append('{:,}'.format(df_now_cust_sum_o))
-        o_comp_culc = f'{df_now_cust_sum_o/df_now_cust_sum*100:0.1f} %'
-        o_comp.append(o_comp_culc)
-
-    st.write('構成比')
-    df_earnings_list = pd.DataFrame(list(zip(l_comp, d_comp, o_comp)), index=index, columns=['L', 'D', 'その他'])
-    st.dataframe(df_earnings_list)
-
-def hokkaido_fiushi_kokusan_comp(): #作成中
+def original_series_category_earnings():
+    # *** selectbox シリーズ***
+    series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
+    option_series = st.selectbox(
+        'series:',
+        series,   
+    ) 
+    # *** selectbox 商品分類2***
+    category = df_now['商品分類名2'].unique()
+    option_category = st.selectbox(
+        'category:',
+        category,   
+    )
     customer_list = df_now['得意先名'].unique()
+    months = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    df_now_series = df_now[df_now['シリーズ名']==option_series]
+    df_now_series_cate = df_now_series[df_now_series['商品分類名2']==option_category]
+    
+    sum_now = []
+    df_result = pd.DataFrame(index=customer_list)
 
-    index = []
-    hokkaido = [] #北海道売り上げ
-    hokkaido_comp = [] #北海道比率
+    for month in months:
+        for customer in customer_list:
+            df_now_series_cate_cust = df_now_series_cate[df_now_series_cate['得意先名']==customer]
+            sum_month = df_now_series_cate_cust[df_now_series_cate_cust['受注月']==month]['金額'].sum()
+            sum_now.append('{:,}'.format(sum_month))
+        df_result[month] = sum_now
+        sum_now = []
+    st.caption('今期売上')
+    st.table(df_result)
 
-    fushi = [] #節売り上げ
-    fushi_comp = [] #節比率
-
-    kokusan = [] #国産売り上げ
-    kokusan_comp = [] #国産比率
-
-    for customer in customer_list:
-        index.append(customer)
-
-        df_now_cust = df_now[df_now['得意先名']==customer]
-
-        df_now_cust_sum = df_now_cust['金額'].sum() #得意先売り上げ合計
-
-        now_cust_sum_h = df_now_cust[df_now_cust['出荷倉庫']==510]['金額'].sum()
-        hokkaido.append('{:,}'.format(now_cust_sum_h))
-        hokkaido_comp_culc = f'{now_cust_sum_h/df_now_cust_sum*100:0.1f} %'
-        hokkaido_comp.append(hokkaido_comp_culc)
-
-        now_cust_sum_fushi = df_now_cust[df_now_cust['シリーズ名'].isin(['森のことば', 'LEVITA (ﾚｳﾞｨﾀ)', '森の記憶', 'とき葉', 
-        '森のことばIBUKI', '森のことば ウォルナット'])]['金額'].sum()
-        fushi.append('{:,}'.format(now_cust_sum_fushi))
-        fushi_comp_culc = f'{now_cust_sum_fushi/df_now_cust_sum*100:0.1f} %'
-        fushi_comp.append(fushi_comp_culc)
-
-        now_cust_sum_kokusan = df_now_cust[df_now_cust['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
-        '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum()
-        kokusan.append('{:,}'.format(now_cust_sum_kokusan))
-        kokusan_comp_culc = f'{now_cust_sum_kokusan/df_now_cust_sum*100:0.1f} %'
-        kokusan_comp.append(kokusan_comp_culc)
-
-    st.write('構成比')
-    df_comp_list = pd.DataFrame(list(zip(hokkaido_comp, fushi_comp, kokusan_comp)), index=index, columns=['北海道工場', '節材', '国産材'])
-    st.dataframe(df_comp_list, width=2000)
-
-def profit_aroma():
+def original_category_series_earnings():
+    # *** selectbox 商品分類2***
+    category = df_now['商品分類名2'].unique()
+    option_category = st.selectbox(
+        'category:',
+        category,   
+    )
+    # *** selectbox シリーズ***
+    series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
+    option_series = st.selectbox(
+        'series:',
+        series,   
+    ) 
     customer_list = df_now['得意先名'].unique()
+    months = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    df_now_cate = df_now[df_now['商品分類名2']==option_category]
+    df_now_cate_series = df_now_cate[df_now_cate['シリーズ名']==option_series]
+    
+    sum_now = []
+    df_result = pd.DataFrame(index=customer_list)
 
-    index = []
-    profit = [] #粗利
-    profit_ratio = [] #粗利率
+    for month in months:
+        for customer in customer_list:
+            df_now_cate_series_cust = df_now_cate_series[df_now_cate_series['得意先名']==customer]
+            sum_month = df_now_cate_series_cust[df_now_cate_series_cust['受注月']==month]['金額'].sum()
+            sum_now.append('{:,}'.format(sum_month))
+        df_result[month] = sum_now
+        sum_now = []
+    st.caption('今期売上')
+    st.table(df_result)
 
-    aroma = [] #アロマ売り上げ
 
-    for customer in customer_list:
-        index.append(customer)
 
-        df_now_cust = df_now[df_now['得意先名']==customer]
 
-        df_now_cust_sum = df_now_cust['金額'].sum() #得意先売り上げ合計
 
-        now_cust_sum_profit = df_now_cust['原価金額'].sum()
-        profit_ratio_culc = f'{(df_now_cust_sum - now_cust_sum_profit)/df_now_cust_sum*100:0.1f} %'
-        profit_ratio.append(profit_ratio_culc)
 
-        now_cust_sum_aroma = df_now_cust[df_now_cust['シリーズ名'].isin(['きつつき森の研究所'])]['金額'].sum()
-        aroma.append('{:,}'.format(now_cust_sum_aroma))
-
-    df_comp_list = pd.DataFrame(list(zip(profit_ratio, aroma)), index=index, columns=['粗利率', 'きつつきの森研究所'])
-    st.dataframe(df_comp_list)
             
 
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        '売上/前年比(累計)●': earnings_comparison,
-        '売上/前年比(月毎)●': earnings_comparison_month,
-        '構成比 LD●': ld_earnings_comp,
-        '構成比 北海道/節/国産●': hokkaido_fiushi_kokusan_comp,
-        '比率 粗利/アロマ関連●': profit_aroma,
+        'オリジナル比率●': original_ratio,
+        'オリジナル売上 店舗別/シリーズベース': original_series_category_earnings,
+        'オリジナル売上 店舗別/商品分類ベース': original_category_series_earnings,
+
         
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
