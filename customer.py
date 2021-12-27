@@ -708,6 +708,11 @@ def series_col_fab():
         st.write('###### 売れ筋ランキング 商品分類別(前期)')
         st.table(series_color_last2)
 
+def remarks():
+    st.markdown('##### 備考')
+    st.write('12/27 回転数　リビングチェアにスツールがカウントされている')
+
+
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
@@ -726,6 +731,7 @@ def main():
         '塗色別 売上/構成比●': category_color,
         '張地別 売上/構成比●': category_fabric,
         '売れ筋ランキング 商品分類別/塗色/張地●': series_col_fab,
+        '備考': remarks,
   
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
