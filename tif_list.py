@@ -40,8 +40,28 @@ df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷�
 df_now_total = df_now['金額'].sum()
 df_last_total = df_last['金額'].sum()
 
+
 def original_ratio():
+    df_now_original_sum = df_now[df_now['シリーズ名'].isin(['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ'])]['金額'].sum()
+    df_last_original_sum = df_last[df_last['シリーズ名'].isin(['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ'])]['金額'].sum()
+
+    o_ratio_now = df_now_original_sum / df_now_total
+    o_ratio_last = df_last_original_sum / df_last_total
+    ratio_diff = f'{(o_ratio_now - o_ratio_last)*100:0.1f} %'
+
+    st.markdown('###### オリジナル比率(全店)')
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric('今期', value=f'{o_ratio_now*100: 0.1f} %', delta=ratio_diff)
+
+    with col2:
+        st.metric('前期', value=f'{o_ratio_last*100: 0.1f} %')   
+
+
     customer_list = df_now['得意先名'].unique()
+
+    col1, col2 = st.columns(2)
+
 
     index = []
     original_now = []
@@ -69,9 +89,106 @@ def original_ratio():
         original_rate__diff.append(original_rate_diff_culc)
         
     original_rate_list = pd.DataFrame(list(zip(original_now, original_last, original_rate_now, original_rate_last, original_rate__diff)), index=index, columns=['今期売上', '前期売上', '今期比率', '前期比率', '対前年差'])
-    st.markdown('###### オリジナル比率')   
+    st.markdown('###### オリジナル比率(店毎）')   
     st.dataframe(original_rate_list)
 
+#累計　シリーズベース
+def original_series_category_earnings_sum():
+
+    # *** selectbox シリーズ***
+    series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
+    option_series = st.selectbox(
+        'series:',
+        series,   
+    ) 
+    # *** selectbox 商品分類2***
+    category = df_now['商品分類名2'].unique()
+    option_category = st.selectbox(
+        'category:',
+        category,   
+    )
+
+    customer_list = df_now['得意先名'].unique()
+    df_now_series = df_now[df_now['シリーズ名']==option_series]
+    df_now_series_cate = df_now_series[df_now_series['商品分類名2']==option_category]
+
+    customer_list = df_last['得意先名'].unique()
+    df_last_series = df_last[df_last['シリーズ名']==option_series]
+    df_last_series_cate = df_last_series[df_last_series['商品分類名2']==option_category]
+
+    sum_now = df_now_series_cate['金額'].sum()
+    sum_last = df_last_series_cate['金額'].sum()
+    sum_diff = '{:,}'.format(sum_now - sum_last)
+
+    st.markdown('###### オリジナル売上(全店)')
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric('今期', value='{:,}'.format(sum_now), delta=sum_diff)
+
+    with col2:
+        st.metric('前期', value='{:,}'.format(sum_last))
+    
+    sum_now = []
+    df_result = pd.DataFrame(index=customer_list)
+
+    for customer in customer_list:
+        df_now_series_cate_cust = df_now_series_cate[df_now_series_cate['得意先名']==customer]
+        sum = df_now_series_cate_cust['金額'].sum()
+        sum_now.append('{:,}'.format(sum))
+    df_result['金額'] = sum_now
+    st.caption('今期売上')
+    st.dataframe(df_result)
+
+#累計　カテゴリーベース
+def original_category_seriesearnings_sum():
+
+    # *** selectbox 商品分類2***
+    category = df_now['商品分類名2'].unique()
+    option_category = st.selectbox(
+        'category:',
+        category,   
+    )
+
+    # *** selectbox シリーズ***
+    series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
+    option_series = st.selectbox(
+        'series:',
+        series,   
+    ) 
+    
+    customer_list = df_now['得意先名'].unique()
+    df_now_cate = df_now[df_now['商品分類名2']==option_category]
+    df_now_cate_series = df_now_cate[df_now_cate['シリーズ名']==option_series]
+
+    customer_list = df_last['得意先名'].unique()
+    df_last_cate = df_last[df_last['商品分類名2']==option_category]
+    df_last_cate_series = df_last_cate[df_last_cate['シリーズ名']==option_series]
+
+    sum_now = df_now_cate_series['金額'].sum()
+    sum_last = df_last_cate_series['金額'].sum()
+    sum_diff = '{:,}'.format(sum_now - sum_last)
+
+    st.markdown('###### オリジナル売上(全店)')
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric('今期', value='{:,}'.format(sum_now), delta=sum_diff)
+
+    with col2:
+        st.metric('前期', value='{:,}'.format(sum_last))
+    
+    sum_now = []
+    df_result = pd.DataFrame(index=customer_list)
+
+    for customer in customer_list:
+        df_now_series_cate_cust = df_now_cate_series[df_now_cate_series['得意先名']==customer]
+        sum = df_now_series_cate_cust['金額'].sum()
+        sum_now.append('{:,}'.format(sum))
+    df_result['金額'] = sum_now
+    st.caption('今期売上')
+    st.dataframe(df_result)    
+
+
+#月毎　シリーズベース
 def original_series_category_earnings():
     # *** selectbox シリーズ***
     series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
@@ -103,6 +220,7 @@ def original_series_category_earnings():
     st.caption('今期売上')
     st.table(df_result)
 
+# 月毎　カテゴリーベース
 def original_category_series_earnings():
     # *** selectbox 商品分類2***
     category = df_now['商品分類名2'].unique()
@@ -133,21 +251,17 @@ def original_category_series_earnings():
         sum_now = []
     st.caption('今期売上')
     st.table(df_result)
-
-
-
-
-
-
-            
+          
 
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
         'オリジナル比率●': original_ratio,
-        'オリジナル売上 店舗別/シリーズベース': original_series_category_earnings,
-        'オリジナル売上 店舗別/商品分類ベース': original_category_series_earnings,
+        'オリジナル売上 店別/シリーズ 累計': original_series_category_earnings_sum,
+        'オリジナル売上 店別/商品分類 累計':original_category_seriesearnings_sum,
+        'オリジナル売上 店別/シリーズ 月毎': original_series_category_earnings,
+        'オリジナル売上 店別/商品分類 月毎': original_category_series_earnings,
 
         
     }
