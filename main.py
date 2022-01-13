@@ -434,7 +434,7 @@ def series_col_fab2():
     categorybase_now = df_now[df_now['商品分類名2']==option_category]
 
     # *** selectbox シリーズ名***
-    series_list = df_now['シリーズ名'].unique()
+    series_list = categorybase_now['シリーズ名'].unique()
     option_series = st.selectbox(
         'series:',
         series_list,   
@@ -443,7 +443,7 @@ def series_col_fab2():
     seriesbase_now = categorybase_now[categorybase_now['シリーズ名']==option_series]
 
     # *** selectbox 塗色名***
-    color_list = df_now['塗色CD'].unique()
+    color_list = seriesbase_now['塗色CD'].unique()
     option_color = st.selectbox(
         'color:',
         color_list,   

@@ -710,7 +710,7 @@ def series_col_fab():
 
 def remarks():
     st.markdown('##### 備考')
-    st.write('12/27 回転数　リビングチェアにスツールがカウントされている')
+    st.write('12/27 回転数 リビングチェアにスツールがカウントされている')
 
 
 def main():
