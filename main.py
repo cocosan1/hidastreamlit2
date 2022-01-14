@@ -244,44 +244,46 @@ def fabric():
     # ***張地別売り上げ ***
     fabric_now = categorybase_now.groupby('張地')['金額'].sum().sort_values(ascending=False).head(10) #降順
     fabric_now2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+    
     # ***張地別売り上げ ***
     fabric_last = categorybase_last.groupby('張地')['金額'].sum().sort_values(ascending=False).head(10) #降順
     fabric_last2 = fabric_last.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+
     col1, col2 = st.columns(2)
 
-    with col1:
-        # グラフ　シリーズ別売り上げ
-        st.write('シリーズ別張地別売上(今期)')
-        fig_series = go.Figure()
-        fig_series.add_trace(
-            go.Bar(
-                x=fabric_now.index,
-                y=fabric_now,
-                )
-        )
-        fig_series.update_layout(
-            height=500,
-            width=1300,
-        )        
+    # with col1:
+    #     # グラフ　シリーズ別売り上げ
+    #     st.write('シリーズ別張地別売上(今期)')
+    #     fig_series = go.Figure()
+    #     fig_series.add_trace(
+    #         go.Bar(
+    #             x=fabric_now.index,
+    #             y=fabric_now,
+    #             )
+    #     )
+    #     fig_series.update_layout(
+    #         height=500,
+    #         width=800,
+    #     )        
         
-        st.plotly_chart(fig_series, use_container_width=True)
+    #     st.plotly_chart(fig_series, use_container_width=True)
 
-    with col2:
-        # グラフ　シリーズ別売り上げ
-        st.write('シリーズ別張地別売上(前期)')
-        fig_series = go.Figure()
-        fig_series.add_trace(
-            go.Bar(
-                x=fabric_last.index,
-                y=fabric_last,
-                )
-        )
-        fig_series.update_layout(
-            height=500,
-            width=1300,
-        )        
+    # with col2:
+    #     # グラフ　シリーズ別売り上げ
+    #     st.write('シリーズ別張地別売上(前期)')
+    #     fig_series = go.Figure()
+    #     fig_series.add_trace(
+    #         go.Bar(
+    #             x=fabric_last.index,
+    #             y=fabric_last,
+    #             )
+    #     )
+    #     fig_series.update_layout(
+    #         height=500,
+    #         width=800,
+    #     )        
         
-        st.plotly_chart(fig_series, use_container_width=True)           
+    #     st.plotly_chart(fig_series, use_container_width=True)           
 
     with col1:
         # グラフ　張地別売り上げ
