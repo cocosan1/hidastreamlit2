@@ -238,8 +238,11 @@ def fabric():
     categorybase_now = df_now[df_now['商品分類名2']==option_category]
     categorybase_last = df_last[df_last['商品分類名2']==option_category]
     
-    categorybase_now = categorybase_now.dropna(subset=['張地']) #['張地']に空欄がある場合行削除
-    categorybase_last = categorybase_last.dropna(subset=['張地'])
+    # categorybase_now = categorybase_now.dropna(subset=['張地']) #['張地']に空欄がある場合行削除
+    # categorybase_last = categorybase_last.dropna(subset=['張地'])
+
+    categorybase_now = categorybase_now[categorybase_now['張地'] != ''] #空欄を抜いたdf作成
+    categorybase_last = categorybase_last[categorybase_last['張地'] != '']
 
     # ***張地別売り上げ ***
     fabric_now = categorybase_now.groupby('張地')['金額'].sum().sort_values(ascending=False).head(10) #降順
@@ -251,39 +254,39 @@ def fabric():
 
     col1, col2 = st.columns(2)
 
-    # with col1:
-    #     # グラフ　シリーズ別売り上げ
-    #     st.write('シリーズ別張地別売上(今期)')
-    #     fig_series = go.Figure()
-    #     fig_series.add_trace(
-    #         go.Bar(
-    #             x=fabric_now.index,
-    #             y=fabric_now,
-    #             )
-    #     )
-    #     fig_series.update_layout(
-    #         height=500,
-    #         width=800,
-    #     )        
+    with col1:
+        # グラフ　シリーズ別売り上げ
+        st.write('シリーズ別張地別売上(今期)')
+        fig_series = go.Figure()
+        fig_series.add_trace(
+            go.Bar(
+                x=fabric_now.index,
+                y=fabric_now,
+                )
+        )
+        fig_series.update_layout(
+            height=500,
+            width=800,
+        )        
         
-    #     st.plotly_chart(fig_series, use_container_width=True)
+        st.plotly_chart(fig_series, use_container_width=True)
 
-    # with col2:
-    #     # グラフ　シリーズ別売り上げ
-    #     st.write('シリーズ別張地別売上(前期)')
-    #     fig_series = go.Figure()
-    #     fig_series.add_trace(
-    #         go.Bar(
-    #             x=fabric_last.index,
-    #             y=fabric_last,
-    #             )
-    #     )
-    #     fig_series.update_layout(
-    #         height=500,
-    #         width=800,
-    #     )        
+    with col2:
+        # グラフ　シリーズ別売り上げ
+        st.write('シリーズ別張地別売上(前期)')
+        fig_series = go.Figure()
+        fig_series.add_trace(
+            go.Bar(
+                x=fabric_last.index,
+                y=fabric_last,
+                )
+        )
+        fig_series.update_layout(
+            height=500,
+            width=800,
+        )        
         
-    #     st.plotly_chart(fig_series, use_container_width=True)           
+        st.plotly_chart(fig_series, use_container_width=True)           
 
     with col1:
         # グラフ　張地別売り上げ
@@ -308,7 +311,7 @@ def fabric():
         #inside グラフ上にテキスト表示
         st.plotly_chart(fig_fabric, use_container_width=True) 
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-        st.caption('※ダイニングチェアの場合、空欄は板座。凡例をクリックして消してください。')
+
     with col2:
         # グラフ　張地別売り上げ
         st.write('張地別売上構成比(前期)')
@@ -441,7 +444,7 @@ def series_col_fab():
 
 def series_col_fab2():
     # *** selectbox 商品分類2***
-    category = df_now['商品分類名2'].unique()
+    category = ['ダイニングチェア', 'リビングチェア']
     option_category = st.selectbox(
         'category:',
         category,   
@@ -465,7 +468,8 @@ def series_col_fab2():
     ) 
 
     colorbase_now = seriesbase_now[seriesbase_now['塗色CD']==option_color]
-    colorbase_now = colorbase_now.dropna(subset=['張地']) #['張地']に空欄がある場合行削除
+    colorbase_now = colorbase_now[colorbase_now['張地'] != '']
+    # colorbase_now = colorbase_now.dropna(subset=['張地']) #['張地']に空欄がある場合行削除
 
     colorbase_now2 = colorbase_now.groupby(['張地'])['金額'].sum().sort_values(ascending=False).head(10)
 

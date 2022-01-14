@@ -601,12 +601,12 @@ def main():
         'オリジナル比率（ダイニング）●': original_ratio_d,
         'オリジナル比率（リビング）●': original_ratio_l,
         'オリジナル売上 シリーズ/LD別●': original_sum_ld,
-        'オリ売上累計 店別/シリーズ/分類': original_series_category_earnings_sum,
-        'オリ売上累計 店別/分類/シリーズ':original_category_seriesearnings_sum,
-        'オリ売上月毎 店別/シリーズ/分類': original_series_category_earnings,
-        'オリ売上月毎 店別/分類/シリーズ': original_category_series_earnings,
-        '品番別数量 全体': hinban_count,
-        '品番別金額 全体': hinban_sum,
+        'オリ売上累計 店別/シリーズ/分類●': original_series_category_earnings_sum,
+        'オリ売上累計 店別/分類/シリーズ●':original_category_seriesearnings_sum,
+        'オリ売上月毎 店別/シリーズ/分類●': original_series_category_earnings,
+        'オリ売上月毎 店別/分類/シリーズ●': original_category_series_earnings,
+        '品番別数量 全体●': hinban_count,
+        '品番別金額 全体●': hinban_sum,
         
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
