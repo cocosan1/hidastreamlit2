@@ -15,7 +15,7 @@ uploaded_file_now = st.sidebar.file_uploader('今期', type='xlsx', key='now')
 df_now = DataFrame()
 if uploaded_file_now:
     df_now = pd.read_excel(
-    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
+    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51]) #index　ナンバー不要　index_col=0
 else:
     st.info('今期のファイルを選択してください。')
 
@@ -25,7 +25,7 @@ uploaded_file_last = st.sidebar.file_uploader('前期', type='xlsx', key='last')
 df_last = DataFrame()
 if uploaded_file_last:
     df_last = pd.read_excel(
-    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52])
+    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51])
 else:
     st.info('前期のファイルを選択してください。')
     st.stop()   
@@ -33,8 +33,11 @@ else:
 # *** 出荷月、受注月列の追加***
 df_now['出荷月'] = df_now['出荷日'].dt.month
 df_now['受注月'] = df_now['受注日'].dt.month
+df_now['張地'] = df_now['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
 df_last['出荷月'] = df_last['出荷日'].dt.month
 df_last['受注月'] = df_last['受注日'].dt.month
+df_last['張地'] = df_last['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
+
 
 # ***INT型への変更***
 df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
@@ -225,8 +228,8 @@ def color():
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
            
 def fabric():
-    # *** selectbox 商品分類2***
-    category = df_now['商品分類名2'].unique()
+    # *** selectbox ***
+    category = ['ダイニングチェア', 'リビングチェア']
     option_category = st.selectbox(
         'category:',
         category,   
@@ -234,18 +237,21 @@ def fabric():
     st.caption('下段 構成比')
     categorybase_now = df_now[df_now['商品分類名2']==option_category]
     categorybase_last = df_last[df_last['商品分類名2']==option_category]
+    
+    categorybase_now = categorybase_now.dropna(subset=['張地']) #['張地']に空欄がある場合行削除
+    categorybase_last = categorybase_last.dropna(subset=['張地'])
 
     # ***張地別売り上げ ***
-    fabric_now = categorybase_now.groupby('張布CD')['金額'].sum().sort_values(ascending=False).head(12) #降順
+    fabric_now = categorybase_now.groupby('張地')['金額'].sum().sort_values(ascending=False).head(10) #降順
     fabric_now2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
     # ***張地別売り上げ ***
-    fabric_last = categorybase_last.groupby('張布CD')['金額'].sum().sort_values(ascending=False).head(12) #降順
+    fabric_last = categorybase_last.groupby('張地')['金額'].sum().sort_values(ascending=False).head(10) #降順
     fabric_last2 = fabric_last.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
     col1, col2 = st.columns(2)
 
     with col1:
         # グラフ　シリーズ別売り上げ
-        st.write('シリーズ別塗色別売上(今期)')
+        st.write('シリーズ別張地別売上(今期)')
         fig_series = go.Figure()
         fig_series.add_trace(
             go.Bar(
@@ -255,14 +261,14 @@ def fabric():
         )
         fig_series.update_layout(
             height=500,
-            width=2000,
+            width=1300,
         )        
         
         st.plotly_chart(fig_series, use_container_width=True)
 
     with col2:
         # グラフ　シリーズ別売り上げ
-        st.write('シリーズ別塗色別売上(前期)')
+        st.write('シリーズ別張地別売上(前期)')
         fig_series = go.Figure()
         fig_series.add_trace(
             go.Bar(
@@ -272,7 +278,7 @@ def fabric():
         )
         fig_series.update_layout(
             height=500,
-            width=2000,
+            width=1300,
         )        
         
         st.plotly_chart(fig_series, use_container_width=True)           
@@ -425,8 +431,9 @@ def series_col_fab():
         category,   
     ) 
     categorybase_now = df_now[df_now['商品分類名2']==option_category]
+    categorybase_now = categorybase_now.dropna(subset=['張地']) #['張地']に空欄がある場合行削除
 
-    categorybase_now2 = categorybase_now.groupby(['シリーズ名', '塗色CD', '張布CD'])['金額'].sum().sort_values(ascending=False).head(20)
+    categorybase_now2 = categorybase_now.groupby(['シリーズ名', '塗色CD', '張地'])['金額'].sum().sort_values(ascending=False).head(20)
     categorybase_now2 = categorybase_now2.apply('{:,}'.format)
     st.dataframe(categorybase_now2)
 
@@ -456,8 +463,9 @@ def series_col_fab2():
     ) 
 
     colorbase_now = seriesbase_now[seriesbase_now['塗色CD']==option_color]
+    colorbase_now = colorbase_now.dropna(subset=['張地']) #['張地']に空欄がある場合行削除
 
-    colorbase_now2 = colorbase_now.groupby(['張布CD'])['金額'].sum().sort_values(ascending=False).head(12)
+    colorbase_now2 = colorbase_now.groupby(['張地'])['金額'].sum().sort_values(ascending=False).head(10)
 
     # グラフ　張布売り上げ
     st.write('張地売り上げ 商品分類/シリース別/塗色別(今期)')
