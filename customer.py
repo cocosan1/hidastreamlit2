@@ -17,6 +17,8 @@ df_now = DataFrame()
 if uploaded_file_now:
     df_now = pd.read_excel(
     uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
+else:
+    st.info('今期のファイルを選択してください。')
 
 # ***ファイルアップロード　前期***
 uploaded_file_last = st.sidebar.file_uploader('前期', type='xlsx', key='last')
@@ -24,6 +26,9 @@ df_last = DataFrame()
 if uploaded_file_last:
     df_last = pd.read_excel(
     uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52])
+else:
+    st.info('前期のファイルを選択してください。')
+    st.stop()
 
 # *** 出荷月、受注月列の追加***
 df_now['出荷月'] = df_now['出荷日'].dt.month

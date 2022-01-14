@@ -16,7 +16,10 @@ df = DataFrame()
 if uploaded_file:
     df = pd.read_excel(
     uploaded_file, sheet_name='受注委託移動在庫生産照会', usecols=[2, 9, 10, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
-
+else:
+    st.info('今期のファイルを選択してください。')
+    st.stop()
+    
 df['数量'] = df['数量'].fillna(0).astype('int64')
 
 df['得意先CD2'] = df['得意先CD'].map(lambda x:str(x)[0:5])

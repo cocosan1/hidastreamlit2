@@ -18,6 +18,8 @@ df_now = DataFrame()
 if uploaded_file_now:
     df_now = pd.read_excel(
     uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 9, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
+else:
+    st.info('今期のファイルを選択してください。')
 
 # ***ファイルアップロード　前期***
 uploaded_file_last = st.sidebar.file_uploader('前期', type='xlsx', key='last')
@@ -25,6 +27,9 @@ df_last = DataFrame()
 if uploaded_file_last:
     df_last = pd.read_excel(
     uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 9, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52])
+else:
+    st.info('前期のファイルを選択してください。')
+    st.stop()
 
 # *** 出荷月、受注月列の追加***
 df_now['出荷月'] = df_now['出荷日'].dt.month
@@ -191,6 +196,7 @@ def original_ratio_l():
     #リビング　オリジナル売上
     now_original_l_sum = df_now_l[df_now_l['シリーズ名'].isin(['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ'])]['金額'].sum()
     last_original_l_sum = df_last_l[df_last_l['シリーズ名'].isin(['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ'])]['金額'].sum()
+    
     #リビング　オリジナル比率
     ratio_now_l = f'{now_original_l_sum / sum_now_l*100:0.1f} %'
     ratio_last_l = f'{last_original_l_sum / sum_last_l*100:0.1f} %'
@@ -217,8 +223,8 @@ def original_ratio_l():
         index.append(customer)
         df_now_cust = df_now[df_now['得意先名']==customer]
         df_last_cust = df_last[df_last['得意先名']==customer]
-        df_now_cust_l = df_now_cust[df_now_cust['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]
-        df_last_cust_l = df_last_cust[df_last_cust['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]
+        df_now_cust_l = df_now_cust[df_now_cust['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]
+        df_last_cust_l = df_last_cust[df_last_cust['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]
         now_cust_l_sum = df_now_cust_l['金額'].sum()
         last_cust_l_sum = df_last_cust_l['金額'].sum()
         original_now_l_culc = df_now_cust_l[df_now_cust_l['シリーズ名'].isin(['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ'])]['金額'].sum()
@@ -593,7 +599,7 @@ def main():
         '-': None,
         'オリジナル比率（全体）●': original_ratio,
         'オリジナル比率（ダイニング）●': original_ratio_d,
-        'オリジナル比率（リビング）': original_ratio_l,
+        'オリジナル比率（リビング）●': original_ratio_l,
         'オリジナル売上 シリーズ/LD別●': original_sum_ld,
         'オリ売上累計 店別/シリーズ/分類': original_series_category_earnings_sum,
         'オリ売上累計 店別/分類/シリーズ':original_category_seriesearnings_sum,

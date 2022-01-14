@@ -16,6 +16,9 @@ df = DataFrame()
 if uploaded_file:
     st.markdown('---')
     df = pd.read_excel(uploaded_file, sheet_name='貼りつけ', usecols=[15, 42, 43, 51, 52, 54])
+else:
+    st.info('今期のファイルを選択してください。')
+    st.stop()    
 
 #file_path = r'C:\Users\hskw1\scraping\年齢別-担当者別分析TIF港79.xlsx'
 
