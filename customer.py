@@ -16,7 +16,7 @@ uploaded_file_now = st.sidebar.file_uploader('今期', type='xlsx', key='now')
 df_now = DataFrame()
 if uploaded_file_now:
     df_now = pd.read_excel(
-    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
+    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
 else:
     st.info('今期のファイルを選択してください。')
 
@@ -25,7 +25,7 @@ uploaded_file_last = st.sidebar.file_uploader('前期', type='xlsx', key='last')
 df_last = DataFrame()
 if uploaded_file_last:
     df_last = pd.read_excel(
-    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52])
+    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52])
 else:
     st.info('前期のファイルを選択してください。')
     st.stop()
@@ -33,8 +33,10 @@ else:
 # *** 出荷月、受注月列の追加***
 df_now['出荷月'] = df_now['出荷日'].dt.month
 df_now['受注月'] = df_now['受注日'].dt.month
+df_now['張地'] = df_now['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
 df_last['出荷月'] = df_last['出荷日'].dt.month
 df_last['受注月'] = df_last['受注日'].dt.month
+df_last['張地'] = df_last['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
 
 # ***INT型への変更***
 df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
@@ -579,8 +581,8 @@ def category_color():
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
             
 def category_fabric():
-     # *** selectbox 商品分類2***
-    category = df_now['商品分類名2'].unique()
+     # *** selectbox***
+    category = ['ダイニングチェア', 'リビングチェア']
     option_category = st.selectbox(
         'category:',
         category,   
@@ -589,14 +591,15 @@ def category_fabric():
     categorybase_last = df_last[df_last['商品分類名2']==option_category]
     categorybase_cust_now = categorybase_now[categorybase_now['得意先名']== option_customer]
     categorybase_cust_last = categorybase_last[categorybase_last['得意先名']== option_customer]
+    categorybase_cust_now = categorybase_cust_now[categorybase_cust_now['張地'] != ''] #空欄を抜いたdf作成
+    categorybase_cust_last = categorybase_cust_last[categorybase_cust_last['張地'] != '']
 
     col1, col2 = st.columns(2)
     with col1:
         # ***張地別売り上げ ***
-        fabric_now = categorybase_cust_now.groupby('張布CD')['金額'].sum().sort_values(ascending=False).head(12) #降順
+        fabric_now = categorybase_cust_now.groupby('張地')['金額'].sum().sort_values(ascending=False).head(12) #降順
         #fabric2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.markdown('###### 張地別売上(今期)')
-        st.caption('※ダイニングチェアの場合、空欄は板座')
 
         # グラフ
         fig_fabric_now = go.Figure()
@@ -615,10 +618,9 @@ def category_fabric():
 
     with col2:
         # ***張地別売り上げ ***
-        fabric_last = categorybase_cust_last.groupby('張布CD')['金額'].sum().sort_values(ascending=False).head(12) #降順
+        fabric_last = categorybase_cust_last.groupby('張地')['金額'].sum().sort_values(ascending=False).head(12) #降順
         #fabric2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.markdown('###### 張地別売上(前期)')
-        st.caption('※ダイニングチェアの場合、空欄は板座')
 
         # グラフ
         fig_fabric_last = go.Figure()
@@ -638,7 +640,6 @@ def category_fabric():
     with col1:
         # グラフ　張地別売り上げ
         st.markdown('張地別売上構成比(今期)')
-        st.caption('※ダイニングチェアの場合、空欄の凡例をクリックして消してください')
         fig_fabric_now2 = go.Figure(
             data=[
                 go.Pie(
@@ -663,7 +664,6 @@ def category_fabric():
     with col2:
         # グラフ　張地別売り上げ
         st.markdown('張地別売上構成比(前期)')
-        st.caption('※ダイニングチェアの場合、空欄の凡例をクリックして消してください')
         fig_fabric_last2 = go.Figure(
             data=[
                 go.Pie(
@@ -701,14 +701,14 @@ def series_col_fab():
 
     with col1:
         # *** シリース別塗色別売上 ***
-        series_color_now = categorybase_cust_now.groupby(['シリーズ名', '塗色CD', '張布CD'])['金額'].sum().sort_values(ascending=False).head(20) #降順
+        series_color_now = categorybase_cust_now.groupby(['シリーズ名', '塗色CD', '張地'])['金額'].sum().sort_values(ascending=False).head(20) #降順
         series_color_now2 = series_color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.markdown('###### 売れ筋ランキング 商品分類別(今期)')
         st.table(series_color_now2)
 
     with col2:
         # **シリーズ別塗色別売上 ***
-        series_color_last = categorybase_cust_last.groupby(['シリーズ名', '塗色CD', '張布CD'])['金額'].sum().sort_values(ascending=False).head(20) #降順
+        series_color_last = categorybase_cust_last.groupby(['シリーズ名', '塗色CD', '張地'])['金額'].sum().sort_values(ascending=False).head(20) #降順
         series_color_last2 = series_color_last.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.write('###### 売れ筋ランキング 商品分類別(前期)')
         st.table(series_color_last2)

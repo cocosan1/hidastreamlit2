@@ -15,7 +15,7 @@ uploaded_file = st.sidebar.file_uploader('Excel', type='xlsx', key='xlsx')
 df = DataFrame()
 if uploaded_file:
     df = pd.read_excel(
-    uploaded_file, sheet_name='受注委託移動在庫生産照会', usecols=[2, 9, 10, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
+    uploaded_file, sheet_name='受注委託移動在庫生産照会', usecols=[2, 8, 9, 10, 42, 50, 51]) #index　ナンバー不要　index_col=0
 else:
     st.info('今期のファイルを選択してください。')
     st.stop()
@@ -24,6 +24,7 @@ df['数量'] = df['数量'].fillna(0).astype('int64')
 
 df['得意先CD2'] = df['得意先CD'].map(lambda x:str(x)[0:5])
 df['商品コード2'] = df['商品コード'].map(lambda x: x.split()[0])
+df['張地'] = df['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
 df = df[df['商品分類名2'].isin(['ダイニングチェア', 'リビングチェア'])]
 
 def ranking():
@@ -57,8 +58,9 @@ def ranking():
         color_list,   
     )
     df_cate_seri_code_col = df_cate_seri_code[df_cate_seri_code['塗色CD']==option_color]
+    df_cate_seri_code_col = df_cate_seri_code_col[df_cate_seri_code_col['張地'] != ''] #空欄を抜いたdf作成
 
-    df_result= df_cate_seri_code_col.groupby(['張布CD'])['数量'].sum().sort_values(ascending=False).head(12)
+    df_result= df_cate_seri_code_col.groupby(['張地'])['数量'].sum().sort_values(ascending=False).head(12)
 
     # グラフ　張布売り上げ
     st.write('ランキング 張地別')
