@@ -194,6 +194,140 @@ def living_dining_comparison():
         st.plotly_chart(fig_ld_ratio_last, use_container_width=True) 
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
+def living_dining_comparison_l():
+
+    st.markdown('###### リビング')
+    df_now_cust_cate = df_now_cust[df_now_cust['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]
+    df_last_cust_cate = df_last_cust[df_last_cust['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]
+    
+    index = []
+    now_result = []
+    last_result = []
+    diff = []
+    ratio = []
+    series_list = df_now_cust_cate['シリーズ名'].unique()
+    
+    for series in series_list:
+        index.append(series)
+        now_culc = df_now_cust_cate[df_now_cust_cate['シリーズ名']==series]['金額'].sum()
+        last_culc = df_last_cust_cate[df_last_cust_cate['シリーズ名']==series]['金額'].sum()
+        now_result.append(now_culc)
+        last_result.append(last_culc)
+        diff_culc = '{:,}'.format(now_culc - last_culc)
+        diff.append(diff_culc)
+        ratio_culc = f'{now_culc/last_culc*100:0.1f} %'
+        ratio.append(ratio_culc)
+    df_result = pd.DataFrame(list(zip(now_result, last_result, ratio, diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])
+    st.write(df_result)
+    
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # グラフ
+        st.markdown('###### リビング構成比(今期)')
+        fig_l_ratio_now = go.Figure(
+            data=[
+                go.Pie(
+                    labels=df_result.index,
+                    values=df_result['今期']
+                    )])
+        fig_l_ratio_now.update_layout(
+            showlegend=True, #凡例表示
+            height=200,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_l_ratio_now.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_l_ratio_now, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
+    with col2:
+        # グラフ
+        st.markdown('###### リビング構成比(前期)')
+        fig_l_ratio_last = go.Figure(
+            data=[
+                go.Pie(
+                    labels=df_result.index,
+                    values=df_result['前期']
+                    )])
+        fig_l_ratio_last.update_layout(
+            showlegend=True, #凡例表示
+            height=200,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_l_ratio_last.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_l_ratio_last, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅    
+
+def living_dining_comparison_d():
+
+    st.markdown('###### ダイニング')
+    df_now_cust_cate = df_now_cust[df_now_cust['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]
+    df_last_cust_cate = df_last_cust[df_last_cust['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]
+    
+    index = []
+    now_result = []
+    last_result = []
+    diff = []
+    ratio = []
+    series_list = df_now_cust_cate['シリーズ名'].unique()
+    
+    for series in series_list:
+        index.append(series)
+        now_culc = df_now_cust_cate[df_now_cust_cate['シリーズ名']==series]['金額'].sum()
+        last_culc = df_last_cust_cate[df_last_cust_cate['シリーズ名']==series]['金額'].sum()
+        now_result.append(now_culc)
+        last_result.append(last_culc)
+        diff_culc = '{:,}'.format(now_culc - last_culc)
+        diff.append(diff_culc)
+        ratio_culc = f'{now_culc/last_culc*100:0.1f} %'
+        ratio.append(ratio_culc)
+    df_result = pd.DataFrame(list(zip(now_result, last_result, ratio, diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])
+    st.write(df_result)
+
+    col1, col2 = st.columns(2)
+    with col1:
+
+        # グラフ
+        st.markdown('###### ダイニング構成比(今期)')
+        fig_d_ratio_now = go.Figure(
+            data=[
+                go.Pie(
+                    labels=df_result.index,
+                    values=df_result['今期']
+                    )])
+        fig_d_ratio_now.update_layout(
+            showlegend=True, #凡例表示
+            height=200,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_d_ratio_now.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_d_ratio_now, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
+    with col2:
+        # グラフ
+        st.markdown('###### ダイニング構成比(前期)')
+        fig_d_ratio_last = go.Figure(
+            data=[
+                go.Pie(
+                    labels=df_result.index,
+                    values=df_result['今期']
+                    )])
+        fig_d_ratio_last.update_layout(
+            showlegend=True, #凡例表示
+            height=200,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_d_ratio_last.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_d_ratio_last, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
+
+
 def series():
     # *** selectbox 商品分類2***
     category = df_now['商品分類名2'].unique()
@@ -725,6 +859,8 @@ def main():
         '★売上 対前年比(累計)●': earnings_comparison_year,
         '★売上 対前年比(月毎)●': earnings_comparison_month,
         '★LD 前年比/構成比●': living_dining_comparison,
+        'L シリーズ別/売上構成比':living_dining_comparison_l,
+        'D シリーズ別/売上構成比':living_dining_comparison_d,
         '★シリーズ別 売上/構成比●': series,
         '★回転数 商品分類別●': item_count_category,
         '回転数 シリーズ別●': item_count_series,
