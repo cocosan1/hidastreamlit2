@@ -314,7 +314,7 @@ def living_dining_comparison_d():
             data=[
                 go.Pie(
                     labels=df_result.index,
-                    values=df_result['今期']
+                    values=df_result['前期']
                     )])
         fig_d_ratio_last.update_layout(
             showlegend=True, #凡例表示
