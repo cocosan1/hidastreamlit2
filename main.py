@@ -88,6 +88,81 @@ def living_dining_latio():
         st.caption(f'前年 {sonota_last/df_last_total*100: 0.1f} %') 
         st.caption('キャビネット類/その他テーブル/雑品・特注品/その他椅子/デスク/小物・その他')
 
+def living_dining_comparison_ld():
+
+    # *** selectbox LD***
+    category = ['リビング', 'ダイニング']
+    option_category = st.selectbox(
+        'category:',
+        category,   
+    ) 
+    if option_category == 'リビング':
+        df_now_cate = df_now[df_now['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]
+        df_last_cate = df_last[df_last['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]
+    elif option_category == 'ダイニング':
+        df_now_cate = df_now[df_now['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]
+        df_last_cate = df_last[df_last['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]
+
+    index = []
+    now_result = []
+    last_result = []
+    diff = []
+    ratio = []
+    series_list = df_now_cate['シリーズ名'].unique()
+    
+    for series in series_list:
+        index.append(series)
+        now_culc = df_now_cate[df_now_cate['シリーズ名']==series]['金額'].sum()
+        last_culc = df_last_cate[df_last_cate['シリーズ名']==series]['金額'].sum()
+        now_result.append(now_culc)
+        last_result.append(last_culc)
+        diff_culc = '{:,}'.format(now_culc - last_culc)
+        diff.append(diff_culc)
+        ratio_culc = f'{now_culc/last_culc*100:0.1f} %'
+        ratio.append(ratio_culc)
+    df_result = pd.DataFrame(list(zip(now_result, last_result, ratio, diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])
+    st.write(df_result)
+    
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # グラフ
+        st.write(f'{option_category} 構成比(今期)')
+        fig_ld_ratio_now = go.Figure(
+            data=[
+                go.Pie(
+                    labels=df_result.index,
+                    values=df_result['今期']
+                    )])
+        fig_ld_ratio_now.update_layout(
+            showlegend=True, #凡例表示
+            height=200,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_ld_ratio_now.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_ld_ratio_now, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
+    with col2:
+        # グラフ
+        st.write(f'{option_category} 構成比(前期)')
+        fig_ld_ratio_last = go.Figure(
+            data=[
+                go.Pie(
+                    labels=df_result.index,
+                    values=df_result['前期']
+                    )])
+        fig_ld_ratio_last.update_layout(
+            showlegend=True, #凡例表示
+            height=200,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_ld_ratio_last.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_ld_ratio_last, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
 def hokkaido_fushi_kokusanzai():
     # *** 北海道比率　節材比率　国産材比率 ***
     col1, col2, col3 = st.columns(3)
@@ -496,6 +571,7 @@ def main():
         '-': None,
         '売上 前年比●': earnings_comparison_year,
         '比率 リビング/ダイニング●' :living_dining_latio,
+        'LD シリーズ別/売上構成比': living_dining_comparison_ld,
         '比率 北海道工場/節材●': hokkaido_fushi_kokusanzai,
         '粗利/売上 きつつき森の研究所●': profit_aroma,
         '塗色別 売上/構成比 (商品分類別)●': color,
