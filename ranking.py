@@ -45,20 +45,23 @@ def ranking():
         series_list,   
     )
     df_cate_seri = df_cate[df_cate['シリーズ名']==option_series]
+    
+    with st.form('入力フォーム'):
+        hinban_list = df_cate_seri['商品コード2'].unique()
+        option_hinban = st.selectbox(
+            'code:',
+            hinban_list,
+        )
+        df_cate_seri_code = df_cate_seri[df_cate_seri['商品コード2']==option_hinban]
 
-    hinban_list = df_cate_seri['商品コード2'].unique()
-    option_hinban = st.selectbox(
-        'code:',
-        hinban_list,
-    )
-    df_cate_seri_code = df_cate_seri[df_cate_seri['商品コード2']==option_hinban]
-
-    # *** selectbox 塗色***
-    color_list = df_cate_seri_code['塗色CD'].unique()
-    option_color = st.selectbox(
-        'color:',
-        color_list,   
-    )
+        # *** selectbox 塗色***
+        color_list = df_cate_seri_code['塗色CD'].unique()
+        option_color = st.selectbox(
+            'color:',
+            color_list,   
+        )
+        st.form_submit_button('submit')
+        
     df_cate_seri_code_col = df_cate_seri_code[df_cate_seri_code['塗色CD']==option_color]
     df_cate_seri_code_col = df_cate_seri_code_col[df_cate_seri_code_col['張地'] != ''] #空欄を抜いたdf作成
 
