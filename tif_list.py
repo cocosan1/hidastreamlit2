@@ -328,18 +328,20 @@ def original_sum_ld():
 #累計　シリーズベース
 def original_series_category_earnings_sum():
 
-    # *** selectbox シリーズ***
-    series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
-    option_series = st.selectbox(
-        'series:',
-        series,   
-    ) 
-    # *** selectbox 商品分類2***
-    category = df_now['商品分類名2'].unique()
-    option_category = st.selectbox(
-        'category:',
-        category,   
-    )
+    with st.form('入力フォーム'):
+        # *** selectbox シリーズ***
+        series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
+        option_series = st.selectbox(
+            'series:',
+            series,   
+        ) 
+        # *** selectbox 商品分類2***
+        category = df_now['商品分類名2'].unique()
+        option_category = st.selectbox(
+            'category:',
+            category,   
+        )
+        submitted = st.form_submit_button('submit')
 
     customer_list = df_now['得意先名'].unique()
     df_now_series = df_now[df_now['シリーズ名']==option_series]
@@ -396,20 +398,21 @@ def original_series_category_earnings_sum():
 
 #累計　カテゴリーベース
 def original_category_seriesearnings_sum():
+    with st.form('入力フォーム'):
+        # *** selectbox 商品分類2***
+        category = df_now['商品分類名2'].unique()
+        option_category = st.selectbox(
+            'category:',
+            category,   
+        )
 
-    # *** selectbox 商品分類2***
-    category = df_now['商品分類名2'].unique()
-    option_category = st.selectbox(
-        'category:',
-        category,   
-    )
-
-    # *** selectbox シリーズ***
-    series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
-    option_series = st.selectbox(
-        'series:',
-        series,   
-    ) 
+        # *** selectbox シリーズ***
+        series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
+        option_series = st.selectbox(
+            'series:',
+            series,   
+        )
+        submitted = st.form_submit_button('submit')
 
     customer_list = df_now['得意先名'].unique()
     df_now_cate = df_now[df_now['商品分類名2']==option_category]
@@ -467,18 +470,21 @@ def original_category_seriesearnings_sum():
 
 #月毎　シリーズベース
 def original_series_category_earnings():
-    # *** selectbox シリーズ***
-    series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
-    option_series = st.selectbox(
-        'series:',
-        series,   
-    ) 
-    # *** selectbox 商品分類2***
-    category = df_now['商品分類名2'].unique()
-    option_category = st.selectbox(
-        'category:',
-        category,   
-    )
+    with st.form('入力フォーム'):
+        # *** selectbox シリーズ***
+        series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
+        option_series = st.selectbox(
+            'series:',
+            series,   
+        ) 
+        # *** selectbox 商品分類2***
+        category = df_now['商品分類名2'].unique()
+        option_category = st.selectbox(
+            'category:',
+            category,   
+        )
+        submitted = st.form_submit_button('submit')
+
     customer_list = df_now['得意先名'].unique()
     months = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     df_now_series = df_now[df_now['シリーズ名']==option_series]
@@ -499,18 +505,21 @@ def original_series_category_earnings():
 
 # 月毎　カテゴリーベース
 def original_category_series_earnings():
-    # *** selectbox 商品分類2***
-    category = df_now['商品分類名2'].unique()
-    option_category = st.selectbox(
-        'category:',
-        category,   
-    )
-    # *** selectbox シリーズ***
-    series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
-    option_series = st.selectbox(
-        'series:',
-        series,   
-    ) 
+    with st.form('入力フォーム'):
+        # *** selectbox 商品分類2***
+        category = df_now['商品分類名2'].unique()
+        option_category = st.selectbox(
+            'category:',
+            category,   
+        )
+        # *** selectbox シリーズ***
+        series = ['森の記憶', 'LEVITA (ﾚｳﾞｨﾀ)', '悠々', 'とき葉', '青葉', '東京ｲﾝﾃﾘｱｵﾘｼﾞﾅﾙ']
+        option_series = st.selectbox(
+            'series:',
+            series,   
+        )
+        submitted = st.form_submit_button('submit')
+        
     customer_list = df_now['得意先名'].unique()
     months = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     df_now_cate = df_now[df_now['商品分類名2']==option_category]
