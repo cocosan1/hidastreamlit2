@@ -150,7 +150,6 @@ def hokkai_ratio_month():
     fushi_last_sum = df_last[df_last['出荷倉庫']==510]['金額'].sum()
     fushi_diff_sum = f'{(fushi_now_sum/df_now_total*100) - (fushi_last_sum/df_last_total*100): 0.1f} %'
     
-    st.markdown('###### 北海道工場比率')
     with col1:
         st.metric('今期比率', value=f'{fushi_now_sum/df_now_total*100: 0.1f} %', delta=fushi_diff_sum) #小数点以下1ケタ
         st.caption(f'前期 {fushi_last_sum/df_last_total*100: 0.1f} %')
