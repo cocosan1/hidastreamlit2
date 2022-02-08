@@ -4,11 +4,12 @@ from pandas.core.frame import DataFrame
 import streamlit as st
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
+import plotly.express as px
 import openpyxl
 from streamlit.state.session_state import Value
 
-st.set_page_config(page_title='売り上げ分析（全体）')
-st.markdown('#### 売り上げ分析（全体)')
+st.set_page_config(page_title='売り上げ分析 Shop')
+st.markdown('#### 売り上げ分析 Shop')
 
 # ***ファイルアップロード 今期***
 uploaded_file_now = st.sidebar.file_uploader('今期', type='xlsx', key='now')
@@ -48,26 +49,287 @@ df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷�
 df_now_total = df_now['金額'].sum()
 df_last_total = df_last['金額'].sum()
 
-def emp_earnings():
-    month_list = ['10', '11', '12', '1', '2', '3', '4', '5', '6', '7', '8', '9']
+def emp_earnings_s():
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8]
     month_sum_list = []
+    emp_sum_list = []
     emps = df_now['取引先担当'].unique()
     df_emp_earn = pd.DataFrame(index=month_list)
+
+    st.markdown('###### 売上/出荷ベース')
+    selected_emp = st.multiselect('表示する担当者を選択', emps)
+
+    df_total = pd.DataFrame(index=selected_emp)
     
-    for emp in emps:
+    for emp in selected_emp:
+
         df_now_emp = df_now[df_now['取引先担当']==emp]
+        emp_sum = df_now_emp['金額'].sum()
+        emp_sum_list.append(emp_sum)
+        
         for month in month_list:
             sum_emp_month = df_now_emp[df_now_emp['出荷月']==month]['金額'].sum()
-            month_sum_list.append(sum_emp_month)
+            month_sum_list.append('{:,}'.format(sum_emp_month))
         df_emp_earn[emp] = month_sum_list
-        month_sum_list = []   
-    st.table(df_emp_earn)    
+        month_sum_list = []
+    df_total['売上'] = emp_sum_list 
+
+    col1, col2 = st.columns(2)
+    with col1:
+        # グラフ
+        st.markdown('###### 担当者別構成比')
+        fig_ratio = go.Figure(
+            data=[
+                go.Pie(
+                    labels=df_total.index,
+                    values=df_total['売上']
+                    )])
+        fig_ratio.update_layout(
+            showlegend=True, #凡例表示
+            height=200,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_ratio.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_ratio, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    with col2:
+        st.markdown('###### 売上合計')
+        st.table(df_total)
+    st.markdown('###### 売上月別') 
+    st.table(df_emp_earn)
+
+def emp_earnings_j():
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8]
+    month_sum_list = []
+    emp_sum_list = []
+    emps = df_now['取引先担当'].unique()
+    df_emp_earn = pd.DataFrame(index=month_list)
+
+    st.markdown('###### 売上/受注ベース')
+    selected_emp = st.multiselect('表示する担当者を選択', emps)
+
+    df_total = pd.DataFrame(index=selected_emp)
+    
+    for emp in selected_emp:
+
+        df_now_emp = df_now[df_now['取引先担当']==emp]
+        emp_sum = df_now_emp['金額'].sum()
+        emp_sum_list.append(emp_sum)
+        
+        for month in month_list:
+            sum_emp_month = df_now_emp[df_now_emp['受注月']==month]['金額'].sum()
+            month_sum_list.append('{:,}'.format(sum_emp_month))
+        df_emp_earn[emp] = month_sum_list
+        month_sum_list = []
+    df_total['売上'] = emp_sum_list 
+
+    col1, col2 = st.columns(2)
+    with col1:
+        # グラフ
+        st.markdown('###### 担当者別構成比')
+        fig_ratio = go.Figure(
+            data=[
+                go.Pie(
+                    labels=df_total.index,
+                    values=df_total['売上']
+                    )])
+        fig_ratio.update_layout(
+            showlegend=True, #凡例表示
+            height=200,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_ratio.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_ratio, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    with col2:
+        st.markdown('###### 売上合計')
+        st.table(df_total)
+    st.markdown('###### 売上月別') 
+    st.table(df_emp_earn)
+
+def hokkai_ratio_month():
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    kokusan_now_list = []
+    kokusan_last_list = []
+    kokusan_diff_list = []
+
+    for month in month_list:
+        df_now_month = df_now[df_now['出荷月']==month]
+        df_last_month = df_last[df_last['出荷月']==month]
+
+        now_month_sum = df_now_month['金額'].sum()
+        last_month_sum = df_last_month['金額'].sum()
+
+
+        kokusan_now = df_now_month[df_now_month['出荷倉庫']==510]['金額'].sum()
+        kokusan_last = df_last_month[df_last_month['出荷倉庫']==510]['金額'].sum()
+        kokusan_now_ratio = f'{(kokusan_now/now_month_sum*100): 0.1f} %'
+        kokusan_last_ratio = f'{(kokusan_last/last_month_sum*100): 0.1f} %'
+        kokusan_diff = f'{(kokusan_now/now_month_sum*100) - (kokusan_last/last_month_sum*100): 0.1f} %'
+
+        kokusan_now_list.append(kokusan_now_ratio)
+        kokusan_last_list.append(kokusan_last_ratio)
+        kokusan_diff_list.append(kokusan_diff)
+
+    df_fushi = pd.DataFrame(index=month_list)
+    df_fushi['今期'] = kokusan_now_list
+    df_fushi['前期'] = kokusan_last_list
+    df_fushi['対前年差'] = kokusan_diff_list
+
+    fushi_now_sum = df_now[df_now['出荷倉庫']==510]['金額'].sum()
+    fushi_last_sum = df_last[df_last['出荷倉庫']==510]['金額'].sum()
+    fushi_diff_sum = f'{(fushi_now_sum/df_now_total*100) - (fushi_last_sum/df_last_total*100): 0.1f} %'
+    
+    st.markdown('###### 北海道工場比率')
+    col1, col2 =st.columns(2)
+    with col1:
+        st.metric('今期比率', value=f'{fushi_now_sum/df_now_total*100: 0.1f} %', delta=fushi_diff_sum) #小数点以下1ケタ
+        st.caption(f'前期 {fushi_last_sum/df_last_total*100: 0.1f} %')
+
+    with col2:
+        st.markdown('###### 月別比率')
+        st.table(df_fushi)
+
+def fushi_ratio_month():
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    kokusan_now_list = []
+    kokusan_last_list = []
+    kokusan_diff_list = []
+
+    for month in month_list:
+        df_now_month = df_now[df_now['出荷月']==month]
+        df_last_month = df_last[df_last['出荷月']==month]
+
+        now_month_sum = df_now_month['金額'].sum()
+        last_month_sum = df_last_month['金額'].sum()
+
+
+        kokusan_now = df_now_month[df_now_month['シリーズ名'].isin(['森のことば', '森のことばIBUKI', '森のことば ウォルナット'])]['金額'].sum()
+        kokusan_last = df_last_month[df_last_month['シリーズ名'].isin(['森のことば', '森のことばIBUKI', '森のことば ウォルナット'])]['金額'].sum()
+        kokusan_now_ratio = f'{(kokusan_now/now_month_sum*100): 0.1f} %'
+        kokusan_last_ratio = f'{(kokusan_last/last_month_sum*100): 0.1f} %'
+        kokusan_diff = f'{(kokusan_now/now_month_sum*100) - (kokusan_last/last_month_sum*100): 0.1f} %'
+
+        kokusan_now_list.append(kokusan_now_ratio)
+        kokusan_last_list.append(kokusan_last_ratio)
+        kokusan_diff_list.append(kokusan_diff)
+
+    df_fushi = pd.DataFrame(index=month_list)
+    df_fushi['今期'] = kokusan_now_list
+    df_fushi['前期'] = kokusan_last_list
+    df_fushi['対前年差'] = kokusan_diff_list
+
+    fushi_now_sum = df_now[df_now['シリーズ名'].isin(['森のことば', '森のことばIBUKI', '森のことば ウォルナット'])]['金額'].sum()
+    fushi_last_sum = df_last[df_last['シリーズ名'].isin(['森のことば', '森のことばIBUKI', '森のことば ウォルナット'])]['金額'].sum()
+    fushi_diff_sum = f'{(fushi_now_sum/df_now_total*100) - (fushi_last_sum/df_last_total*100): 0.1f} %'
+    
+    st.markdown('###### 節材比率')
+    col1, col2 =st.columns(2)
+    with col1:
+        st.metric('今期比率', value=f'{fushi_now_sum/df_now_total*100: 0.1f} %', delta=fushi_diff_sum) #小数点以下1ケタ
+        st.caption(f'前期 {fushi_last_sum/df_last_total*100: 0.1f} %')
+        st.caption('森のことば/森のことばIBUKI/森のことば ウォルナット')
+
+    with col2:
+        st.markdown('###### 月別比率')
+        st.table(df_fushi)
+
+def kokusan_ratio_month():
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    kokusan_now_list = []
+    kokusan_last_list = []
+    kokusan_diff_list = []
+
+    for month in month_list:
+        df_now_month = df_now[df_now['出荷月']==month]
+        df_last_month = df_last[df_last['出荷月']==month]
+
+        now_month_sum = df_now_month['金額'].sum()
+        last_month_sum = df_last_month['金額'].sum()
+
+
+        kokusan_now = df_now_month[df_now_month['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum()
+        kokusan_last = df_last_month[df_last_month['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum()
+        kokusan_now_ratio = f'{(kokusan_now/now_month_sum*100): 0.1f} %'
+        kokusan_last_ratio = f'{(kokusan_last/last_month_sum*100): 0.1f} %'
+        kokusan_diff = f'{(kokusan_now/now_month_sum*100) - (kokusan_last/last_month_sum*100): 0.1f} %'
+
+        kokusan_now_list.append(kokusan_now_ratio)
+        kokusan_last_list.append(kokusan_last_ratio)
+        kokusan_diff_list.append(kokusan_diff)
+
+    df_fushi = pd.DataFrame(index=month_list)
+    df_fushi['今期'] = kokusan_now_list
+    df_fushi['前期'] = kokusan_last_list
+    df_fushi['対前年差'] = kokusan_diff_list
+
+    fushi_now_sum = df_now[df_now['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum()
+    fushi_last_sum = df_last[df_last['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum()
+    fushi_diff_sum = f'{(fushi_now_sum/df_now_total*100) - (fushi_last_sum/df_last_total*100): 0.1f} %'
+    
+    st.markdown('###### 国産材比率')
+    col1, col2 =st.columns(2)
+    with col1:
+        st.metric('今期比率', value=f'{fushi_now_sum/df_now_total*100: 0.1f} %', delta=fushi_diff_sum) #小数点以下1ケタ
+        st.caption(f'前期 {fushi_last_sum/df_last_total*100: 0.1f} %')
+        st.caption('北海道民芸家具/HIDA/Northern Forest/北海道HMその他/杉座/ｿﾌｨｵ SUGI/風のうた/Kinoe')
+
+    with col2:
+        st.markdown('###### 月別比率')
+        st.table(df_fushi)
+        
+
+
+    
+
+
+
+
+
+
+    # with col1:
+    #     hokkaido_now = df_now[df_now['出荷倉庫']==510]['金額'].sum()
+    #     hokkaido_last = df_last[df_last['出荷倉庫']==510]['金額'].sum()
+    #     hokkaido_diff = f'{(hokkaido_now/df_now_total*100) - (hokkaido_last/df_last_total*100): 0.1f} %'
+    #     st.metric('北海道工場比率', value=f'{hokkaido_now/df_now_total*100: 0.1f} %', delta=hokkaido_diff) #小数点以下1ケタ
+    #     st.caption(f'前年 {hokkaido_last/df_last_total*100: 0.1f} %')
+    # with col2:
+    #     kokusan_now = df_now[df_now['シリーズ名'].isin(['森のことば', 'LEVITA (ﾚｳﾞｨﾀ)', '森の記憶', 'とき葉', 
+    #     '森のことばIBUKI', '森のことば ウォルナット'])]['金額'].sum()
+    #     # sdソファ拾えていない isin その値を含む行　true
+    #     kokusan_last = df_last[df_last['シリーズ名'].isin(['森のことば', 'LEVITA (ﾚｳﾞｨﾀ)', '森の記憶', 'とき葉', 
+    #     '森のことばIBUKI', '森のことば ウォルナット'])]['金額'].sum()
+    #     kokusan_diff = f'{(kokusan_now/df_now_total*100) - (kokusan_last/df_last_total*100): 0.1f} %'
+    #     st.metric('節材比率', value=f'{kokusan_now/df_now_total*100: 0.1f} %', delta=kokusan_diff) #小数点以下1ケタ
+    #     st.caption(f'前年 {kokusan_last/df_last_total*100: 0.1f} %')
+    #     st.caption('森のことば/LEVITA (ﾚｳﾞｨﾀ)/森の記憶/とき葉/森のことばIBUKI/森のことば ウォルナット')
+    # with col3:
+    #     kokusanzai_now = df_now[df_now['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
+    #     '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum() #SHSカバ拾えていない
+    #     kokusanzai_last = df_last[df_last['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
+    #     '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum() #SHSカバ拾えていない
+    #     kokusanzai_diff = f'{(kokusanzai_now/df_now_total*100) - (kokusanzai_last/df_last_total*100): 0.1f} %'
+    #     st.metric('国産材比率', value=f'{kokusanzai_now/df_now_total*100: 0.1f} %', delta=kokusanzai_diff) #小数点以下1ケタ
+    #     st.caption(f'前年 {kokusanzai_last/df_last_total*100: 0.1f} %')
+    #     st.caption('北海道民芸家具/HIDA/Northern Forest/北海道HMその他/杉座/ｿﾌｨｵ SUGI/風のうた/Kinoe')
+
+
+     
+    
+    
+    
 
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        '担当者別売上　月別/出荷ベース': emp_earnings,
+        '担当別月別売上/出荷ベース': emp_earnings_s,
+        '担当別月別売上/受注ベース': emp_earnings_j,
+        '比率 北海層工場': hokkai_ratio_month,
+        '比率 節材': fushi_ratio_month,
+        '比率 国産材': kokusan_ratio_month,
         
         
     }
