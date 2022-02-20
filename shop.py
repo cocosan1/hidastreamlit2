@@ -16,7 +16,8 @@ uploaded_file_now = st.sidebar.file_uploader('今期', type='xlsx', key='now')
 df_now = DataFrame()
 if uploaded_file_now:
     df_now = pd.read_excel(
-    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 43, 50, 51]) #index　ナンバー不要　index_col=0
+    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[1, 3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 43, 50, 51]) #index　ナンバー不要　index_col=0
+    # 伝票番号/得意先名/出荷日/商　品　名/数量/単価/金額/受注日/出荷倉庫/原価金額/シリーズ名/取引先担当/商品分類名2/塗色CD
 else:
     st.info('今期のファイルを選択してください。')
 
@@ -26,7 +27,7 @@ uploaded_file_last = st.sidebar.file_uploader('前期', type='xlsx', key='last')
 df_last = DataFrame()
 if uploaded_file_last:
     df_last = pd.read_excel(
-    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 43, 50, 51])
+    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[1, 3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 43, 50, 51])
 else:
     st.info('前期のファイルを選択してください。')
     st.stop()   
@@ -263,6 +264,51 @@ def kokusan_ratio_month():
         st.markdown('###### 月別比率')
         st.table(df_fushi)
 
+def contract_count():
+    df_now['伝票番号2'] = df_now['伝票番号'].map(lambda x:str(x)[0:8])
+    df_now_kagu = df_now[df_now['商品分類名2'].isin(['デスク', 'ダイニングテーブル', 'ダイニングチェア', 'ベンチ', 'リビングチェア', 'リビングテーブル', 'その他椅子', 'ベッド', 'キャビネット類'])]
+    slip_list = df_now_kagu['伝票番号2'].unique()
+    df_emp = df_now_kagu[df_now_kagu['伝票番号2']=='21002989'].iat[0, 11]
+    st.write('21001054'+'-1')
+    st.write(df_now['伝票番号'])
+    st.write(df_emp)
+    st.write(slip_list)
+    cate_list = df_now['商品分類名2'].unique()
+    st.write(cate_list)
+   
+    st.write(df_now_kagu)
+    st.write(df_now['伝票番号'].dtype)
+    st.caption('デスク/ダイニングテーブル/ダイニングチェア/ベンチ/リビングチェア/リビングテーブル/その他椅子/ベッド/キャビネット類')
+
+    emp_list = []
+    yonekura = []
+    hisamistu = []
+    yokoyama = []
+    yone_hisa = []
+    yone_yoko = []
+    hisa_yoko = []
+    all = []
+    for slip in slip_list:
+        emp = df_now_kagu[df_now_kagu['伝票番号2']==slip].iat[0, 11]
+        if emp=='米倉':
+            yonekura.append(emp)
+        elif emp=='久光':
+            hisamistu.append(emp)
+        elif emp=='横山':
+            yokoyama.append(emp)
+        elif emp=='米倉/久光':
+            yone_hisa.append(emp)
+        elif emp=='米倉/横山':
+            yone_yoko.append(emp)
+        elif emp=='久光/横山':
+            hisa_yoko.append(emp)
+        elif emp=='米倉/久光/横山':
+            all.append(emp)                   
+
+        emp_list.append(emp)
+    st.write(emp_list)    
+        
+
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
@@ -271,6 +317,7 @@ def main():
         '比率 北海道工場': hokkai_ratio_month,
         '比率 節材': fushi_ratio_month,
         '比率 国産材': kokusan_ratio_month,
+        '成約数': contract_count,
         
         
     }
