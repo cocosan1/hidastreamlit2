@@ -35,10 +35,10 @@ else:
 # *** 出荷月、受注月列の追加***
 df_now['出荷月'] = df_now['出荷日'].dt.month
 df_now['受注月'] = df_now['受注日'].dt.month
-df_now['張地'] = df_now['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
+# df_now['張地'] = df_now['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
 df_last['出荷月'] = df_last['出荷日'].dt.month
 df_last['受注月'] = df_last['受注日'].dt.month
-df_last['張地'] = df_last['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
+# df_last['張地'] = df_last['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
 
 
 # ***INT型への変更***
@@ -267,46 +267,58 @@ def kokusan_ratio_month():
 def contract_count():
     df_now['伝票番号2'] = df_now['伝票番号'].map(lambda x:str(x)[0:8])
     df_now_kagu = df_now[df_now['商品分類名2'].isin(['デスク', 'ダイニングテーブル', 'ダイニングチェア', 'ベンチ', 'リビングチェア', 'リビングテーブル', 'その他椅子', 'ベッド', 'キャビネット類'])]
-    slip_list = df_now_kagu['伝票番号2'].unique()
-    df_emp = df_now_kagu[df_now_kagu['伝票番号2']=='21002989'].iat[0, 11]
-    st.write('21001054'+'-1')
-    st.write(df_now['伝票番号'])
-    st.write(df_emp)
-    st.write(slip_list)
-    cate_list = df_now['商品分類名2'].unique()
-    st.write(cate_list)
-   
-    st.write(df_now_kagu)
-    st.write(df_now['伝票番号'].dtype)
-    st.caption('デスク/ダイニングテーブル/ダイニングチェア/ベンチ/リビングチェア/リビングテーブル/その他椅子/ベッド/キャビネット類')
+    df_now_kagu = df_now_kagu[df_now_kagu['金額']>0] #マイナス伝票削除
 
-    emp_list = []
-    yonekura = []
-    hisamistu = []
-    yokoyama = []
-    yone_hisa = []
-    yone_yoko = []
-    hisa_yoko = []
-    all = []
-    for slip in slip_list:
-        emp = df_now_kagu[df_now_kagu['伝票番号2']==slip].iat[0, 11]
-        if emp=='米倉':
-            yonekura.append(emp)
-        elif emp=='久光':
-            hisamistu.append(emp)
-        elif emp=='横山':
-            yokoyama.append(emp)
-        elif emp=='米倉/久光':
-            yone_hisa.append(emp)
-        elif emp=='米倉/横山':
-            yone_yoko.append(emp)
-        elif emp=='久光/横山':
-            hisa_yoko.append(emp)
-        elif emp=='米倉/久光/横山':
-            all.append(emp)                   
 
-        emp_list.append(emp)
-    st.write(emp_list)    
+    st.caption('デスク/ダイニングテーブル/ダイニングチェア/ベンチ/リビングチェア/リビングテーブル/その他椅子/ベッド/キャビネット類　※赤伝除く')
+
+    yonekura = 0
+    hisamitu = 0
+    yokoyama = 0
+
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    count_list = []
+    emp_list =['米倉', '久光', '横山']
+    df_result = pd.DataFrame(index= emp_list)
+
+    for month in month_list:
+        df_now_kagu_month = df_now_kagu[df_now_kagu['受注月']==month]
+        slip_list = df_now_kagu_month['伝票番号2'].unique()
+
+        
+        for slip in slip_list:
+            emp = df_now_kagu_month[df_now_kagu_month['伝票番号2']==slip].iat[0, 11]
+            
+            if emp=='米倉':
+                yonekura += 1
+            elif emp=='久光':
+                hisamitu += 1
+            elif emp=='横山':
+                yokoyama += 1
+            elif emp=='米倉/久光':
+                yonekura += 1
+                hisamitu += 1
+            elif emp=='米倉/横山':
+                yonekura += 1
+                yokoyama += 1
+            elif emp=='久光/横山':
+                hisamitu += 1
+                yokoyama += 1
+            elif emp=='米倉/久光/横山':
+                yonekura += 1
+                hisamitu += 1
+                yokoyama += 1
+
+        count_list.append(yonekura)
+        count_list.append(hisamitu)
+        count_list.append(yokoyama)
+        df_result[month] = count_list
+        yonekura = 0
+        hisamitu = 0
+        yokoyama = 0
+        count_list = []
+
+    st.table(df_result)
         
 
 def main():
