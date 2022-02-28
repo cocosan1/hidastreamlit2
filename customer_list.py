@@ -87,6 +87,15 @@ def earnings_comparison_month():
     df_now_month = df_now[df_now['受注月']==option_month]
     df_last_month = df_last[df_last['受注月']==option_month]
 
+    earnings_now_total = df_now_month['金額'].sum()
+    earnings_last_total = df_last_month['金額'].sum()
+    comparison_rate_total = f'{earnings_now_total/earnings_last_total *100: 0.1f} %'
+    comparison_diff_total =earnings_now_total - earnings_last_total
+    data_list = [earnings_now_total, earnings_last_total, comparison_rate_total, comparison_diff_total]
+    earnings_comparison_total_list = pd.DataFrame(data=[[earnings_now_total, earnings_last_total, comparison_rate_total, comparison_diff_total]], columns=['今期', '前期', '対前年比', '対前年差'])
+    st.markdown("###### 合計")
+    st.table(earnings_comparison_total_list)
+
     for customer in customer_list:
         index.append(customer)
         cust_earnings_total_now_month = df_now_month[df_now_month['得意先名']==customer]['金額'].sum()
@@ -98,7 +107,8 @@ def earnings_comparison_month():
         earnings_last.append(cust_earnings_total_last_month)
         comparison_rate.append(earnings_rate_culc)
         comparison_diff.append(comaparison_diff_culc)
-    earnings_comparison_list = pd.DataFrame(list(zip(earnings_now, earnings_last, comparison_rate, comparison_diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])    
+    earnings_comparison_list = pd.DataFrame(list(zip(earnings_now, earnings_last, comparison_rate, comparison_diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])
+    st.markdown("###### 得意先別")  
     st.dataframe(earnings_comparison_list)
 
 
