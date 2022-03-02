@@ -62,6 +62,44 @@ def earnings_comparison_year():
     with col3:
         st.metric('対前年比', value= total_comparison)
 
+def earnings_comparison_month():
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    sales_now = []
+    sales_last = []
+    df_month = pd.DataFrame(index=month_list)
+
+    for month in month_list:
+        sales_now_month =df_now[df_now['受注月']==month]['金額'].sum()
+        sales_last_month =df_last[df_last['受注月']==month]['金額'].sum()
+
+        sales_now.append(sales_now_month)
+        sales_last.append(sales_last_month)
+
+    df_month['今期売上'] = sales_now
+    df_month['前期売上'] = sales_last
+
+    df_month['対前期比'] = df_month['今期売上'] / df_month['前期売上']
+    df_month['対前期差'] = df_month['今期売上'] - df_month['前期売上']
+    df_month['累計(前期売上)'] = df_month['前期売上'].cumsum()
+    df_month['累計(今期売上)'] = df_month['今期売上'].cumsum()
+    df_month['累計(対前期比)'] = df_month['累計(今期売上)'] / df_month['累計(前期売上)']
+    df_month['累計(対前期差)'] = df_month['累計(今期売上)'] - df_month['累計(前期売上)']
+
+    df_month['対前期比'] = df_month['対前期比'].map('{:.1%}'.format)
+    df_month['累計(対前期比)'] = df_month['累計(対前期比)'].map('{:.1%}'.format)
+
+    df_month['今期売上'] = df_month['今期売上'].astype(int).apply('{:,}'.format)
+    df_month['前期売上'] = df_month['前期売上'].astype(int).apply('{:,}'.format)
+    df_month['対前期差'] = df_month['対前期差'].astype(int).apply('{:,}'.format)
+    df_month['累計(前期売上)'] = df_month['累計(前期売上)'].astype(int).apply('{:,}'.format)
+    df_month['累計(今期売上)'] = df_month['累計(今期売上)'].astype(int).apply('{:,}'.format)
+    df_month['累計(対前期差)'] = df_month['累計(対前期差)'].astype(int).apply('{:,}'.format)
+
+    st.markdown('###### 月別売上')
+    st.table(df_month)
+
+
+
 def living_dining_latio():
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -574,6 +612,7 @@ def main():
     apps = {
         '-': None,
         '売上 前年比●': earnings_comparison_year,
+        '売上 月別': earnings_comparison_month,
         '比率 リビング/ダイニング●' :living_dining_latio,
         'LD シリーズ別/売上構成比': living_dining_comparison_ld,
         '比率 北海道工場/節材●': hokkaido_fushi_kokusanzai,
