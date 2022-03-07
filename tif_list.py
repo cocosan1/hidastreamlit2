@@ -324,9 +324,96 @@ def original_sum_ld():
 
     st.markdown('###### living')
     st.dataframe(df_l)
+
+def category_hinban_cnt():
+
+    # *** selectbox 商品分類2***
+    category = df_now['商品分類名2'].unique()
+    option_category = st.selectbox(
+        'category:',
+        category,   
+    )
+    df_now_cate =df_now[df_now['商品分類名2']==option_category]
+    df_last_cate =df_last[df_now['商品分類名2']==option_category]
+
+    hinban_list = df_now_cate['商品コード2'].unique()
+
+    cnt_list_now = []
+    cnt_list_last =[]
+    index_list = []
+    ratio_list = []
+    diff_list = []
+
+    for hinban in hinban_list:
+        index_list.append(hinban)
+        cnt_now =df_now_cate[df_now_cate['商品コード2']==hinban]['数量'].sum()
+        cnt_last = df_last_cate[df_last_cate['商品コード2']==hinban]['数量'].sum()
+        ratio = f'{(cnt_now / cnt_last)*100:0.1f} %'
+        diff = cnt_now - cnt_last
+
+        cnt_list_now.append(cnt_now)
+        cnt_list_last.append(cnt_last)
+        ratio_list.append(ratio)
+        diff_list.append(diff)
+
+    df_result = pd.DataFrame(index=index_list)
+    df_result['今期'] = cnt_list_now
+    df_result['前期'] = cnt_list_last
+    df_result['対前期比'] = ratio_list
+    df_result['対前期差'] = diff_list
+
+    st.dataframe(df_result)
+
+def category_hinban_cust_cnt():
+    # *** selectbox 商品分類2***
+    category = df_now['商品分類名2'].unique()
+    option_category = st.selectbox(
+        '商品分類:',
+        category,   
+    )
+    df_now_cate =df_now[df_now['商品分類名2']==option_category]
+    df_last_cate =df_last[df_now['商品分類名2']==option_category]
+
+    hinban_list = df_now_cate['商品コード2'].unique()
+    option_hinban = st.selectbox(
+        '品番:',
+        hinban_list,   
+    )
+    df_now_cate_hin = df_now_cate[df_now_cate['商品コード2']==option_hinban]
+    df_last_cate_hin = df_last_cate[df_last_cate['商品コード2']==option_hinban]
+
+    cust_list = df_now_cate_hin['得意先名'].unique()
+
+    cnt_list_now = []
+    cnt_list_last =[]
+    index_list = []
+    diff_list = []
+    ratio_list = []
+
+    for cust in cust_list:
+        cnt_now = df_now_cate_hin[df_now_cate_hin['得意先名']==cust]['数量'].sum()
+        cnt_last = df_last_cate_hin[df_last_cate_hin['得意先名']==cust]['数量'].sum()
+        diff = cnt_now - cnt_last
+        ratio = f'{(cnt_now / cnt_last)*100:0.1f} %'
+
+        index_list.append(cust)
+        cnt_list_now.append(cnt_now)
+        cnt_list_last.append(cnt_last)
+        diff_list.append(diff)
+        ratio_list.append(ratio)
+
+    df_result = pd.DataFrame(index=index_list)
+    df_result['今期'] = cnt_list_now
+    df_result['前期'] = cnt_list_last
+    df_result['対前期比'] = ratio_list
+    df_result['対前期差'] = diff_list
+
+    st.dataframe(df_result)   
+
     
 #累計　シリーズベース
 def original_series_category_earnings_sum():
+    
 
     with st.form('入力フォーム'):
         # *** selectbox シリーズ***
@@ -610,6 +697,8 @@ def main():
         'オリジナル比率（ダイニング）●': original_ratio_d,
         'オリジナル比率（リビング）●': original_ratio_l,
         'オリジナル売上 シリーズ/LD別●': original_sum_ld,
+        '回転数/商品分類別': category_hinban_cnt,
+        '回転数/品番別/店舗別':category_hinban_cust_cnt,
         'オリ売上累計 店別/シリーズ/分類●': original_series_category_earnings_sum,
         'オリ売上累計 店別/分類/シリーズ●':original_category_seriesearnings_sum,
         'オリ売上月毎 店別/シリーズ/分類●': original_series_category_earnings,
