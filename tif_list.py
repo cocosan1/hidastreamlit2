@@ -334,7 +334,7 @@ def category_hinban_cnt():
         category,   
     )
     df_now_cate =df_now[df_now['商品分類名2']==option_category]
-    df_last_cate =df_last[df_now['商品分類名2']==option_category]
+    df_last_cate =df_last[df_last['商品分類名2']==option_category]
 
     hinban_list = df_now_cate['商品コード2'].unique()
 
@@ -372,7 +372,7 @@ def category_hinban_cust_cnt():
         category,   
     )
     df_now_cate =df_now[df_now['商品分類名2']==option_category]
-    df_last_cate =df_last[df_now['商品分類名2']==option_category]
+    df_last_cate =df_last[df_last['商品分類名2']==option_category]
 
     hinban_list = df_now_cate['商品コード2'].unique()
     option_hinban = st.selectbox(
