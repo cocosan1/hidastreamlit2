@@ -25,8 +25,14 @@ df['金額'] = df['金額'].fillna(0).astype('int64')
 df['原価金額'] = df['原価金額'].fillna(0).astype('int64')
 
 df['得意先CD2'] = df['得意先CD'].map(lambda x:str(x)[0:5])
-df['商品コード2'] = df['商品コード'].map(lambda x: x.split()[0])
+df['商品コード2'] = df['商品コード'].map(lambda x: x.split()[0]) #品番
+
+
 df['張地'] = df['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
+df['HTSサイズ'] = df['張地'].map(lambda x: x.split('x')[0]) #HTSサイズ
+df['HTS形状'] = df['商　品　名'].map(lambda x: x.split()[1] if len(x.split()) >= 4 else '') #HTS天板形状
+
+
 df2 = df[df['商品分類名2'].isin(['ダイニングチェア', 'リビングチェア'])]
 
 def ranking():
@@ -111,12 +117,81 @@ def profit():
     st.metric('粗利率', value=(f'{(kingaku_mean-genka_mean)/kingaku_mean*100:0.1f} %'))
     # st.write(f'{(kingaku_mean-genka_mean)/kingaku_mean*100:0.1f} %')
 
+def hts_width():
+    st.markdown('###### 侭サイズ　一覧')
+    df_hts = df[df['商品コード2']=='HTS2']
+    size_list = df_hts['HTSサイズ'].unique() #張地だがサイズを拾える
 
+    cnt_list = []
+    index = []
 
+    for size in size_list:
+        index.append(size)
+        cnt = df_hts[df_hts['HTSサイズ']==size]['数量'].sum()
+        cnt_list.append(cnt)
 
+    df_size = pd.DataFrame(index=index)
+    df_size['数量'] = cnt_list
+    df_size = df_size.sort_values(by='数量', ascending=False)
+    df_size2 = df_size.head(12)
 
+    col1, col2 = st.columns(2)
 
+    with col1:
+        st.table(df_size)
 
+    with col2:    
+    # グラフ　シリーズ別売り上げ
+        fig_size = go.Figure()
+        fig_size.add_trace(
+            go.Bar(
+                x=df_size2.index,
+                y=df_size2['数量'],
+                )
+        )
+        fig_size.update_layout(
+            height=500,
+            width=2000,
+        )        
+        st.plotly_chart(fig_size, use_container_width=True)
+
+def hts_shape():
+    st.markdown('###### 天板形状　一覧')
+    df_hts = df[df['商品コード2']=='HTS2']
+    shape_list = df_hts['HTS形状'].unique()
+
+    cnt_list = []
+    index = []
+
+    for shape in shape_list:
+        index.append(shape)
+        cnt = df_hts[df_hts['HTS形状']==shape]['数量'].sum()
+        cnt_list.append(cnt)
+
+    df_shape = pd.DataFrame(index=index)
+    df_shape['数量'] = cnt_list
+    df_shape = df_shape.sort_values(by='数量', ascending=False)
+    df_shape2 = df_shape.head(12)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.table(df_shape)
+
+    with col2:    
+    # グラフ　シリーズ別売り上げ
+        fig_shape = go.Figure()
+        fig_shape.add_trace(
+            go.Bar(
+                x=df_shape2.index,
+                y=df_shape2['数量'],
+                )
+        )
+        fig_shape.update_layout(
+            height=500,
+            width=2000,
+        )        
+        st.plotly_chart(fig_shape, use_container_width=True)
 
 
 def main():
@@ -125,8 +200,9 @@ def main():
         '-': None,
         'ランキング 張地': ranking,
         '品番別粗利率': profit,
-        
-        
+        '侭　サイズランキング': hts_width,
+        '侭　天板形状ランキング': hts_shape,
+          
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
                                              options=list(apps.keys()))
