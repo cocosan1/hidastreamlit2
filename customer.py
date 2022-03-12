@@ -561,6 +561,92 @@ def profit_aroma():
         st.metric('きつつき森の研究所関連', value=('{:,}'.format(aroma_now)), delta=aroma_diff)
         st.caption(f'前年 {aroma_last2}')
 
+def color():
+    df_now_cust = df_now[df_now['得意先名']==option_customer]
+    df_last_cust = df_last[df_last['得意先名']==option_customer]
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        # ***塗色別売り上げ ***
+        color_now = df_now_cust.groupby('塗色CD')['金額'].sum().sort_values(ascending=False) #降順
+        #color_now2 = color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+        st.markdown('###### 塗色別売上(今期)')
+
+        # グラフ
+        fig_color_now = go.Figure()
+        fig_color_now.add_trace(
+            go.Bar(
+                x=color_now.index,
+                y=color_now,
+                )
+        )
+        fig_color_now.update_layout(
+            height=500,
+            width=2000,
+        )        
+        
+        st.plotly_chart(fig_color_now, use_container_width=True)
+
+    with col2:
+        # ***塗色別売り上げ ***
+        color_last = df_last_cust.groupby('塗色CD')['金額'].sum().sort_values(ascending=False) #降順
+        #color_last2 = color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+        st.markdown('###### 塗色別売上(前期)')
+
+        # グラフ
+        fig_color_last = go.Figure()
+        fig_color_last.add_trace(
+            go.Bar(
+                x=color_last.index,
+                y=color_last,
+                )
+        )
+        fig_color_last.update_layout(
+            height=500,
+            width=2000,
+        )        
+        
+        st.plotly_chart(fig_color_last, use_container_width=True)    
+
+    with col1:    
+        # グラフ　塗色別売り上げ
+        st.markdown('###### 塗色別売上構成比(今期)')
+        fig_color_now2 = go.Figure(
+            data=[
+                go.Pie(
+                    labels=color_now.index,
+                    values=color_now
+                    )])
+        fig_color_now2.update_layout(
+            showlegend=True, #凡例表示
+            height=290,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_color_now2.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_color_now2, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
+    with col2:    
+        # グラフ　塗色別売り上げ
+        st.markdown('###### 塗色別売上構成比(前期)')
+        fig_color_last2 = go.Figure(
+            data=[
+                go.Pie(
+                    labels=color_last.index,
+                    values=color_last
+                    )])
+        fig_color_last2.update_layout(
+            showlegend=True, #凡例表示
+            height=290,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_color_last2.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_color_last2, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
 def category_color():
     # *** selectbox 商品分類2***
     category = df_now['商品分類名2'].unique()
@@ -809,7 +895,8 @@ def main():
         '比率 リビング/ダイニング●': living_dining_latio,
         '★比率 北海道工場/節あり材/国産材●': hokkaido_fushi_kokusanzai, 
         '★比率 粗利/アロマ関連●': profit_aroma,
-        '塗色別 売上/構成比●': category_color,
+        '塗色別　売上構成比': color,
+        '塗色別 売上/構成比/商品分類別●': category_color,
         '張地別 売上/構成比●': category_fabric,
         '売れ筋ランキング 商品分類別/塗色/張地●': series_col_fab,
         '備考': remarks,

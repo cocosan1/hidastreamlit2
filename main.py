@@ -15,7 +15,7 @@ uploaded_file_now = st.sidebar.file_uploader('今期', type='xlsx', key='now')
 df_now = DataFrame()
 if uploaded_file_now:
     df_now = pd.read_excel(
-    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51]) #index　ナンバー不要　index_col=0
+        uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51])  # index　ナンバー不要　index_col=0
 else:
     st.info('今期のファイルを選択してください。')
 
@@ -25,24 +25,31 @@ uploaded_file_last = st.sidebar.file_uploader('前期', type='xlsx', key='last')
 df_last = DataFrame()
 if uploaded_file_last:
     df_last = pd.read_excel(
-    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 43, 50, 51])
+        uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 43, 50, 51])
 else:
     st.info('前期のファイルを選択してください。')
-    st.stop()   
+    st.stop()
 
 # *** 出荷月、受注月列の追加***
 df_now['出荷月'] = df_now['出荷日'].dt.month
 df_now['受注月'] = df_now['受注日'].dt.month
-df_now['張地'] = df_now['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
+df_now['商品コード2'] = df_now['商　品　名'].map(lambda x: x.split()[0]) #品番
+df_now['商品コード3'] = df_now['商　品　名'].map(lambda x: str(x)[0:2]) #頭品番
+df_now['張地'] = df_now['商　品　名'].map(
+    lambda x: x.split()[2] if len(x.split()) >= 4 else '')
 df_last['出荷月'] = df_last['出荷日'].dt.month
 df_last['受注月'] = df_last['受注日'].dt.month
-df_last['張地'] = df_last['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
-
+df_last['商品コード2'] = df_last['商　品　名'].map(lambda x: x.split()[0])
+df_last['商品コード3'] = df_last['商　品　名'].map(lambda x: str(x)[0:2]) #頭品番
+df_last['張地'] = df_last['商　品　名'].map(
+    lambda x: x.split()[2] if len(x.split()) >= 4 else '')
 
 # ***INT型への変更***
-df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
+df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_now[[
+    '数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
 #fillna　０で空欄を埋める
-df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
+df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_last[[
+    '数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
 #fillna　０で空欄を埋める
 
 df_now_total = df_now['金額'].sum()
@@ -222,14 +229,26 @@ def hokkaido_fushi_kokusanzai():
         st.caption(f'前年 {fushi_last/df_last_total*100: 0.1f} %')
         st.caption('森のことば/LEVITA (ﾚｳﾞｨﾀ)/森の記憶/とき葉/森のことばIBUKI/森のことば ウォルナット')
     with col3:
-        kokusanzai_now = df_now[df_now['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
+        kokusanzai_now1 = df_now[df_now['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
         '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum() #SHSカバ拾えていない
-        kokusanzai_last = df_last[df_last['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
+        kokusanzai_last1 = df_last[df_last['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
         '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum() #SHSカバ拾えていない
-        kokusanzai_diff = f'{(kokusanzai_now/df_now_total*100) - (kokusanzai_last/df_last_total*100): 0.1f} %'
-        st.metric('国産材比率', value=f'{kokusanzai_now/df_now_total*100: 0.1f} %', delta=kokusanzai_diff) #小数点以下1ケタ
-        st.caption(f'前年 {kokusanzai_last/df_last_total*100: 0.1f} %')
-        st.caption('北海道民芸家具/HIDA/Northern Forest/北海道HMその他/杉座/ｿﾌｨｵ SUGI/風のうた/Kinoe')
+
+        kokusanzai_now2 = df_now[df_now['商品コード2'].isin(['SG261M', 'SG261K', 'SG261C', 'SG261AM', 'SG261AK', 'SG261AC', 'KD201M', 'KD201K', 'KD201C', 'KD201AM', 'KD201AK', 'KD201AC'])]['金額'].sum()
+        kokusanzai_last2 = df_last[df_last['商品コード2'].isin(['SG261M', 'SG261K', 'SG261C', 'SG261AM', 'SG261AK', 'SG261AC', 'KD201M', 'KD201K', 'KD201C', 'KD201AM', 'KD201AK', 'KD201AC'])]['金額'].sum()
+        
+        kokusanzai_now3 = df_now[df_now['商品コード3']=='HJ']['金額'].sum()
+        kokusanzai_last3 = df_last[df_last['商品コード3']=='HJ']['金額'].sum()
+
+        kokusanzai_now_t = kokusanzai_now1 + kokusanzai_now2 + kokusanzai_now3
+        kokusanzai_last_t = kokusanzai_last1 + kokusanzai_last2 + kokusanzai_last3 
+
+        kokusanzai_diff = f'{(kokusanzai_now_t/df_now_total*100) - (kokusanzai_last_t/df_last_total*100): 0.1f} %'
+        st.metric('国産材比率', value=f'{kokusanzai_now_t/df_now_total*100: 0.1f} %', delta=kokusanzai_diff) #小数点以下1ケタ
+        st.caption(f'前年 {kokusanzai_last_t/df_last_total*100: 0.1f} %')
+        st.caption('北海道民芸家具/HIDA/Northern Forest/北海道HMその他/杉座/')
+        st.caption('ｿﾌｨｵ SUGI/風のうた/Kinoe/HJ/SG261M/SG261(K/C/M)/SG261A(K/C/M)/')
+        st.caption('KD201(K/C/M)/KD201A(K/C/M)')
 
 def profit_aroma():
     col1, col2 = st.columns(2)
@@ -615,7 +634,7 @@ def main():
         '売上 月別': earnings_comparison_month,
         '比率 リビング/ダイニング●' :living_dining_latio,
         'LD シリーズ別/売上構成比': living_dining_comparison_ld,
-        '比率 北海道工場/節材●': hokkaido_fushi_kokusanzai,
+        '比率 北海道工場/節材/国産材●': hokkaido_fushi_kokusanzai,
         '粗利/売上 きつつき森の研究所●': profit_aroma,
         '塗色別 売上/構成比 (商品分類別)●': color,
         '張地別 売上/構成比 (商品分類別)●': fabric,
