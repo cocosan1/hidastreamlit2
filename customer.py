@@ -7,6 +7,7 @@ import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import openpyxl
 from streamlit.state.session_state import Value
+import math
 
 st.set_page_config(page_title='売り上げ分析（得意先別）')
 st.markdown('#### 売り上げ分析（得意先別)')
@@ -128,11 +129,11 @@ def mean_erning_month():
     for month in month_list:
         earnings_month_now = df_now_cust[df_now_cust['受注月'].isin([month])]
         order_sum_now = earnings_month_now.groupby('order_num')['金額'].sum()
-        order_mean_now = int(order_sum_now.mean())
+        order_mean_now = order_sum_now.mean()
 
         earnings_month_last = df_last_cust[df_last_cust['受注月'].isin([month])]
         order_sum_last = earnings_month_last.groupby('order_num')['金額'].sum()
-        order_mean_last = int(order_sum_last.mean())
+        order_mean_last = order_sum_last.mean()
 
         order_mean_diff = order_mean_now - order_mean_last
         order_mean_rate = f'{(order_mean_now / order_mean_last)*100: 0.1f} %'
