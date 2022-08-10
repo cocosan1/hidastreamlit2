@@ -148,7 +148,6 @@ def mean_erning_month():
 
     df_mean_earninngs_month = pd.DataFrame(list(zip(earnings_now, earnings_last, earnings_diff, earnings_rate)), columns=columns_list, index=month_list)
     st.caption('受注月ベース')
-    st.table(df_mean_earninngs_month)
 
     col1, col2 = st.columns(2)
 
@@ -157,7 +156,17 @@ def mean_erning_month():
             delta='{:,}'.format(int(df_mean_earninngs_month['対前年差'].mean())))
 
     with col2:
-        st.metric('前期平均', value='{:,}'.format(int(df_mean_earninngs_month['前期'].mean())))        
+        st.metric('前期平均', value='{:,}'.format(int(df_mean_earninngs_month['前期'].mean()))) 
+
+    df_mean_earninngs_month.fillna(0, inplace=True)
+    df_mean_earninngs_month['今期'] = \
+        df_mean_earninngs_month['今期'].map(lambda x: '{:,}'.format(int(x))) 
+    df_mean_earninngs_month['前期'] = \
+        df_mean_earninngs_month['前期'].map(lambda x: '{:,}'.format(int(x))) 
+    df_mean_earninngs_month['対前年差'] = \
+        df_mean_earninngs_month['対前年差'].map(lambda x: '{:,}'.format(int(x)))   
+    
+    st.table(df_mean_earninngs_month)          
     
 def living_dining_comparison():
     st.markdown('##### LD 前年比/構成比')
