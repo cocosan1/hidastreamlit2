@@ -16,7 +16,7 @@ uploaded_file_now = st.sidebar.file_uploader('今期', type='xlsx', key='now')
 df_now = DataFrame()
 if uploaded_file_now:
     df_now = pd.read_excel(
-    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
+    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[1, 3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
 else:
     st.info('今期のファイルを選択してください。')
 
@@ -25,7 +25,7 @@ uploaded_file_last = st.sidebar.file_uploader('前期', type='xlsx', key='last')
 df_last = DataFrame()
 if uploaded_file_last:
     df_last = pd.read_excel(
-    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52])
+    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[1, 3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52])
 else:
     st.info('前期のファイルを選択してください。')
     st.stop()
@@ -99,6 +99,61 @@ def earnings_comparison_month():
     df_earnings_month = pd.DataFrame(list(zip(earnings_now, earnings_last, earnings_diff, earnings_rate)), columns=columns_list, index=month_list)
     st.caption('受注月ベース')
     st.table(df_earnings_month)
+
+def mean_erning_month():
+    st.write('#### 平均成約単価')
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    columns_list = ['今期', '前期', '対前年差', '対前年比']
+    df_now_cust = df_now[df_now['得意先名']==option_customer]
+    df_last_cust = df_last[df_last['得意先名']==option_customer]
+
+    order_num_now = []
+    for num in df_now_cust['伝票番号']:
+        num2 = num.split('-')[0]
+        order_num_now.append(num2)
+    df_now_cust['order_num'] = order_num_now
+
+    order_num_last = []
+    for num in df_last_cust['伝票番号']:
+        num2 = num.split('-')[0]
+        order_num_last.append(num2)
+    df_last_cust['order_num'] = order_num_last
+
+
+    earnings_now = []
+    earnings_last = []
+    earnings_diff = []
+    earnings_rate = []
+
+    for month in month_list:
+        earnings_month_now = df_now_cust[df_now_cust['受注月'].isin([month])]
+        order_sum_now = earnings_month_now.groupby('order_num')['金額'].sum()
+        order_mean_now = int(order_sum_now.mean())
+
+        earnings_month_last = df_last_cust[df_last_cust['受注月'].isin([month])]
+        order_sum_last = earnings_month_last.groupby('order_num')['金額'].sum()
+        order_mean_last = int(order_sum_last.mean())
+
+        order_mean_diff = order_mean_now - order_mean_last
+        order_mean_rate = f'{(order_mean_now / order_mean_last)*100: 0.1f} %'
+        
+        earnings_now.append(order_mean_now)
+        earnings_last.append(order_mean_last)
+        earnings_diff.append(order_mean_diff)
+        earnings_rate.append(order_mean_rate)
+
+    df_mean_earninngs_month = pd.DataFrame(list(zip(earnings_now, earnings_last, earnings_diff, earnings_rate)), columns=columns_list, index=month_list)
+    st.caption('受注月ベース')
+    st.table(df_mean_earninngs_month)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.metric('今期平均', value='{:,}'.format(int(df_mean_earninngs_month['今期'].mean())), \
+            delta='{:,}'.format(int(df_mean_earninngs_month['対前年差'].mean())))
+
+    with col2:
+        st.metric('前期平均', value='{:,}'.format(int(df_mean_earninngs_month['前期'].mean())))        
     
 def living_dining_comparison():
     st.markdown('##### LD 前年比/構成比')
@@ -933,6 +988,7 @@ def main():
         '-': None,
         '★売上 対前年比(累計)●': earnings_comparison_year,
         '★売上 対前年比(月毎)●': earnings_comparison_month,
+        '平均成約単価': mean_erning_month,
         '★LD 前年比/構成比●': living_dining_comparison,
         '★LD シリーズ別/売上構成比●': living_dining_comparison_ld,
         'シリーズ別 売上/構成比●': series,
