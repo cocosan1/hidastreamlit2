@@ -754,11 +754,35 @@ def category_fabric():
     categorybase_cust_last = categorybase_last[categorybase_last['得意先名']== option_customer]
     categorybase_cust_now = categorybase_cust_now[categorybase_cust_now['張地'] != ''] #空欄を抜いたdf作成
     categorybase_cust_last = categorybase_cust_last[categorybase_cust_last['張地'] != '']
+    
+    fab_name_now = []
+    for name in categorybase_cust_now['商　品　名']:
+
+        name_s = name.split(' ')
+        if name_s[2]=='TIFﾗﾝｸ布':
+            fab = name_s[-1]
+        else:
+            fab = name_s[2]
+        fab_name_now.append(fab)    
+    
+    categorybase_cust_now['fabric'] = fab_name_now
+
+    fab_name_last = []
+    for name in categorybase_cust_last['商　品　名']:
+
+        name_s = name.split(' ')
+        if name_s[2]=='TIFﾗﾝｸ布':
+            fab = name_s[-1]
+        else:
+            fab = name_s[2]
+        fab_name_last.append(fab)    
+    
+    categorybase_cust_last['fabric'] = fab_name_last
 
     col1, col2 = st.columns(2)
     with col1:
         # ***張地別売り上げ ***
-        fabric_now = categorybase_cust_now.groupby('張地')['金額'].sum().sort_values(ascending=False).head(12) #降順
+        fabric_now = categorybase_cust_now.groupby('fabric')['金額'].sum().sort_values(ascending=False).head(12) #降順
         #fabric2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.markdown('###### 張地別売上(今期)')
 
@@ -779,7 +803,7 @@ def category_fabric():
 
     with col2:
         # ***張地別売り上げ ***
-        fabric_last = categorybase_cust_last.groupby('張地')['金額'].sum().sort_values(ascending=False).head(12) #降順
+        fabric_last = categorybase_cust_last.groupby('fabric')['金額'].sum().sort_values(ascending=False).head(12) #降順
         #fabric2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.markdown('###### 張地別売上(前期)')
 
@@ -858,18 +882,42 @@ def series_col_fab():
     categorybase_cust_now = categorybase_now[categorybase_now['得意先名']== option_customer]
     categorybase_cust_last = categorybase_last[categorybase_last['得意先名']== option_customer]
 
+    fab_name_now = []
+    for name in categorybase_cust_now['商　品　名']:
+
+        name_s = name.split(' ')
+        if name_s[2]=='TIFﾗﾝｸ布':
+            fab = name_s[-1]
+        else:
+            fab = name_s[2]
+        fab_name_now.append(fab)    
+    
+    categorybase_cust_now['fabric'] = fab_name_now
+
+    fab_name_last = []
+    for name in categorybase_cust_last['商　品　名']:
+
+        name_s = name.split(' ')
+        if name_s[2]=='TIFﾗﾝｸ布':
+            fab = name_s[-1]
+        else:
+            fab = name_s[2]
+        fab_name_last.append(fab)    
+    
+    categorybase_cust_last['fabric'] = fab_name_last
+
     col1, col2 = st.columns(2)
 
     with col1:
         # *** シリース別塗色別売上 ***
-        series_color_now = categorybase_cust_now.groupby(['シリーズ名', '塗色CD', '張地'])['金額'].sum().sort_values(ascending=False).head(20) #降順
+        series_color_now = categorybase_cust_now.groupby(['シリーズ名', '塗色CD', 'fabric'])['金額'].sum().sort_values(ascending=False).head(20) #降順
         series_color_now2 = series_color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.markdown('###### 売れ筋ランキング 商品分類別(今期)')
         st.table(series_color_now2)
 
     with col2:
         # **シリーズ別塗色別売上 ***
-        series_color_last = categorybase_cust_last.groupby(['シリーズ名', '塗色CD', '張地'])['金額'].sum().sort_values(ascending=False).head(20) #降順
+        series_color_last = categorybase_cust_last.groupby(['シリーズ名', '塗色CD', 'fabric'])['金額'].sum().sort_values(ascending=False).head(20) #降順
         series_color_last2 = series_color_last.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.write('###### 売れ筋ランキング 商品分類別(前期)')
         st.table(series_color_last2)
