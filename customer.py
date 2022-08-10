@@ -136,7 +136,10 @@ def mean_erning_month():
         order_mean_last = order_sum_last.mean()
 
         order_mean_diff = order_mean_now - order_mean_last
-        order_mean_rate = f'{(order_mean_now / order_mean_last)*100: 0.1f} %'
+        if order_mean_last == 0:
+            order_mean_rate = '0%'
+        else:
+            order_mean_rate = f'{(order_mean_now / order_mean_last)*100: 0.1f} %'
         
         earnings_now.append(order_mean_now)
         earnings_last.append(order_mean_last)
