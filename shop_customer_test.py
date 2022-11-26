@@ -49,6 +49,7 @@ df_past['必着日'] = df_past['必着日'].dt.date
 df_past['受注日'] = pd.to_datetime(df_past['受注日'])
 df_past['受注日'] = df_past['受注日'].dt.date
 
+
 def select_customer():
     name = st.text_input('氏名 ※スペースなし')
     df_now2 = df_now[df_now['氏名2']==name]
@@ -67,6 +68,13 @@ def select_customer():
         min_date = min_date.split(' ')[0]
         st.write('初回購入日') 
         st.write(min_date)
+
+    #1000円単位でカンマ
+    df_now2['金額'] = df_now2['金額'].map(lambda x: '{:,}'.format(x)) 
+    df_past2['単価'] = df_past2['単価'].map(lambda x: '{:,}'.format(x))  
+    df_past2['金額'] = df_past2['金額'].map(lambda x: '{:,}'.format(x))
+
+    df_now2['確率'] = df_now2['確率'].map(lambda x: f'{x :0.1f}')   
 
     st.caption('来店情報')
     st.table(df_now2)
