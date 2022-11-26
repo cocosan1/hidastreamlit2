@@ -31,6 +31,9 @@ else:
     st.info('実績のファイルを選択してください。')
     st.stop()
 
+#int化
+df_past[['数量', '単価', '金額']] = df_past[['数量', '単価', '金額']].astype('int')
+
 # 氏名からスペースの削除
 df_now['氏名2'] = df_now['氏名'].map(lambda x: x.replace('\u3000', '')) #全角スペース削除
 df_now['氏名2'] = df_now['氏名'].map(lambda x: x.replace(' ', ''))    
