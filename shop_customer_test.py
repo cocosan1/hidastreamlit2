@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from pandas.core.frame import DataFrame
 import streamlit as st
-from streamlit.state.session_state import Value
+# from streamlit.state.session_state import Value
 import datetime
 
 st.set_page_config(page_title='顧客管理')
