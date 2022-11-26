@@ -66,7 +66,6 @@ def select_customer():
     with col3:
         min_date = str(df_past2['受注日'].min())
         min_date = min_date.split(' ')[0]
-        st.write('初回購入日') 
         st.metric('初回購入日', value=min_date)
 
     #1000円単位でカンマ
