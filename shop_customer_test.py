@@ -67,7 +67,7 @@ def select_customer():
         min_date = str(df_past2['受注日'].min())
         min_date = min_date.split(' ')[0]
         st.write('初回購入日') 
-        st.write(min_date)
+        st.metric('初回購入日', value=min_date)
 
     #1000円単位でカンマ
     df_now2['金額'] = df_now2['金額'].map(lambda x: '{:,}'.format(x)) 
