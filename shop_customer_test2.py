@@ -17,14 +17,6 @@ import json
 st.set_page_config(page_title='顧客管理')
 st.markdown('#### 顧客管理')
 
-SP_CREDENTIAL_FILE = '/content/drive/MyDrive/Colab Notebooks/shop/customer-test-369800-4dea3886b081.json'
-SP_COPE = [
-    'https://www.googleapis.com/auth/drive',
-    'https://spreadsheets.google.com/feeds'  
-]
-SP_SHHET_KEY = '1jHgWlYF1sEoyFuY2ogV8BYltOiFJPO-YHf9deK5manI' #gssheetsのid URLのdの後
-SP_SHEET = 'フォームの回答 1'
-
 # Credentials 情報を取得
 credentials = service_account.Credentials.from_service_account_info( \
         st.secrets["gcp_service_account"], scopes=[ "https://www.googleapis.com/auth/spreadsheets", ],
