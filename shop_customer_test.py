@@ -50,7 +50,7 @@ def select_customer():
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        total_sum = df_past2['金額'].sum()
+        total_sum = str(df_past2['金額'].sum())
         st.metric('購入金額', value=total_sum) 
     with col2:
         buy_count= df_past2['受注日'].nunique()
