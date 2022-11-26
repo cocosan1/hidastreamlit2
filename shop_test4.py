@@ -2,10 +2,8 @@ import pandas as pd
 import numpy as np
 from pandas.core.frame import DataFrame
 import streamlit as st
-import plotly.figure_factory as ff
-import plotly.graph_objects as go
 import openpyxl
-from streamlit.state.session_state import Value
+# from streamlit.state.session_state import Value
 import datetime
 
 from gsheetsdb import connect
