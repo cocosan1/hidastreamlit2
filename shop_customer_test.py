@@ -18,7 +18,7 @@ else:
     st.info('顧客情報のファイルを選択してください。')
 
 # ***ファイルアップロード 過去実績***
-uploaded_file_past = st.sidebar.file_uploader('実績', type='xlsx', key='now')
+uploaded_file_past = st.sidebar.file_uploader('実績', type='xlsx', key='past')
 df_past = DataFrame()
 if uploaded_file_past:
     df_past = pd.read_excel(
