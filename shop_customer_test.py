@@ -8,10 +8,6 @@ import openpyxl
 from streamlit.state.session_state import Value
 import datetime
 
-import gspread
-from oauth2client.service_account import ServiceAccountCredentials
-import json
-
 st.set_page_config(page_title='顧客管理')
 st.markdown('#### 顧客管理')
 
