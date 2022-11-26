@@ -17,12 +17,11 @@ import json
 st.set_page_config(page_title='顧客管理')
 st.markdown('#### 顧客管理')
 
-# Credentials 情報を取得
-credentials = service_account.Credentials.from_service_account_info( \
-        st.secrets["gcp_service_account"], scopes=[ "https://www.googleapis.com/auth/spreadsheets", ],
+# Create a connection object.
+credentials = service_account.Credentials.from_service_account_info( st.secrets["gcp_service_account"], scopes=[ "https://www.googleapis.com/auth/spreadsheets", ],
 )
 conn = connect(credentials=credentials)
-def run_query(query): 
+def run_query(query):
     rows = conn.execute(query, headers=1) 
     return rows
 
@@ -32,6 +31,7 @@ rows = run_query(f'SELECT * FROM "{sheet_url}"')
 row_list = []
 for row in rows: row_list.append(row)
 df_now=pd.DataFrame(row_list)
+
 
 # ***ファイルアップロード 過去実績***
 uploaded_file_past = st.sidebar.file_uploader('実績', type='xlsx', key='now')
