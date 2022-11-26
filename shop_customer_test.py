@@ -39,6 +39,16 @@ df_now['氏名2'] = df_now['氏名'].map(lambda x: x.replace(' ', ''))
 df_past['得意先名2'] = df_past['得意先名'].map(lambda x: x.replace('\u3000', '')) #全角スペース削除
 df_past['得意先名2'] = df_past['得意先名'].map(lambda x: x.replace(' ', '')) #半角スペース削除
 
+#日時表示　時間分消す
+df_now['来店日'] = pd.to_datetime(df_now['来店日'])
+df_now['来店日'] = df_now['来店日'].dt.date
+df_now['購入予定日'] = pd.to_datetime(df_now['購入予定日'])
+df_now['購入予定日'] = df_now['購入予定日'].dt.date
+df_past['必着日'] = pd.to_datetime(df_past['必着日'])
+df_past['必着日'] = df_past['必着日'].dt.date
+df_past['受注日'] = pd.to_datetime(df_past['受注日'])
+df_past['受注日'] = df_past['受注日'].dt.date
+
 def select_customer():
     name = st.text_input('氏名 ※スペースなし')
     df_now2 = df_now[df_now['氏名2']==name]
