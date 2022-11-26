@@ -59,7 +59,7 @@ def select_customer():
         min_date = str(df_past2['受注日'].min())
         min_date = min_date.split(' ')[0]
         st.write('初回購入日') 
-        st.write(f'{min_date}')
+        st.write(min_date)
 
     st.caption('来店情報')
     st.table(df_now2)
