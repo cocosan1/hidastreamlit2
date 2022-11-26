@@ -13,7 +13,7 @@ uploaded_file_now = st.sidebar.file_uploader('顧客情報', type='xlsx', key='n
 df_now = DataFrame()
 if uploaded_file_now:
     df_now = pd.read_excel(
-        uploaded_file_now, sheet_name='Sheet1', index_col=0)  # index　ナンバー不要　index_col=0
+        uploaded_file_now, sheet_name='Sheet1')  # index　ナンバー不要　index_col=0
 else:
     st.info('顧客情報のファイルを選択してください。')
 
