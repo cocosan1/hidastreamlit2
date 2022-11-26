@@ -63,12 +63,6 @@ def select_customer():
     st.caption('購入履歴')
     st.table(df_past2)
 
-
-
-
-
-
-
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {

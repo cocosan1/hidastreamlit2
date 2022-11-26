@@ -1,0 +1,10 @@
+google-auth==2.6.0
+google-auth-oauthlib==0.4.6
+gsheetsdb==0.1.13.1
+gspread==5.1.1
+json5==0.9.5
+MarkupSafe==1.1.1
+matplotlib @ file:///C:/ci/matplotlib-suite_1613408055530/work
+opencv-python==4.5.5.62
+openpyxl==2.6.2
+plotly @ file:///Users/nicolas/opt/miniconda3/envs/env/conda-bld/plotly_1636941624625/work/packages/python/plotly/dist/plotly-5.4.0.tar.gz
