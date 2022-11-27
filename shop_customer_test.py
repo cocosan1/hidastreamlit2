@@ -73,7 +73,7 @@ def select_customer():
     df_past2['単価'] = df_past2['単価'].map(lambda x: '{:,}'.format(x))  
     df_past2['金額'] = df_past2['金額'].map(lambda x: '{:,}'.format(x))
 
-    df_now2['確率'] = df_now2['確率'].map(lambda x: f'{x :0.1f}')   
+    # df_now2['確率'] = df_now2['確率'].map(lambda x: f'{x :0.1f}')   
 
     st.caption('来店情報')
     st.table(df_now2)
