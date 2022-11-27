@@ -40,8 +40,8 @@ df_past['得意先名2'] = df_past['得意先名'].map(lambda x: x.replace('\u30
 df_past['得意先名2'] = df_past['得意先名'].map(lambda x: x.replace(' ', '')) #半角スペース削除
 
 #日時表示　時間分消す
-df_now['タイムスタンプ'] = pd.to_datetime(df_now['来店日'])
-df_now['タイムスタンプ'] = df_now['来店日'].dt.date
+df_now['タイムスタンプ'] = pd.to_datetime(df_now['タイムスタンプ'])
+df_now['タイムスタンプ'] = df_now['タイムスタンプ'].dt.date
 # df_now['購入予定日'] = pd.to_datetime(df_now['購入予定日'])
 # df_now['購入予定日'] = df_now['購入予定日'].dt.date
 df_past['必着日'] = pd.to_datetime(df_past['必着日'])
