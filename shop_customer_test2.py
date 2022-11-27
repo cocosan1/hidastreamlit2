@@ -2,37 +2,37 @@ import pandas as pd
 import numpy as np
 from pandas.core.frame import DataFrame
 import streamlit as st
-import openpyxl
 # from streamlit.state.session_state import Value
 import datetime
 
-from gsheetsdb import connect
 import gspread
-from google.oauth2 import service_account
 from oauth2client.service_account import ServiceAccountCredentials
 import json
 
 st.set_page_config(page_title='顧客管理')
 st.markdown('#### 顧客管理')
 
-# Create a connection object.
-credentials = service_account.Credentials.from_service_account_info( st.secrets["gcp_service_account"], scopes=[ "https://www.googleapis.com/auth/spreadsheets", ],
-)
-conn = connect(credentials=credentials)
-def run_query(query):
-    rows = conn.execute(query, headers=1) 
-    return rows
+SP_COPE = [
+    'https://www.googleapis.com/auth/drive',
+    'https://spreadsheets.google.com/feeds'  
+]
 
-sheet_url = st.secrets["private_gsheets_url"]
-rows = run_query(f'SELECT * FROM "{sheet_url}"')
-# データフレームに変換し表示する
-row_list = []
-for row in rows: row_list.append(row)
-df_now=pd.DataFrame(row_list)
+SP_SHEET = 'フォームの回答 1'
 
+# Credentials 情報を取得
+credentials = ServiceAccountCredentials.from_json_keyfile_name(SP_CREDENTIAL_FILE, SP_COPE)
+#OAuth2のクレデンシャルを使用してGoogleAPIにログイン
+gc = gspread.authorize(credentials)
+# IDを指定して、Googleスプレッドシートのワークブックを選択する
+sh = gc.open_by_key(SP_SHHET_KEY)
+# シート名を指定して、ワークシートを選択
+worksheet = sh.worksheet(SP_SHEET)
+data= worksheet.get_all_values()
+# スプレッドシートをDataFrameに取り込む
+df_now = pd.DataFrame(data[1:], columns=data[0])
 
 # ***ファイルアップロード 過去実績***
-uploaded_file_past = st.sidebar.file_uploader('実績', type='xlsx', key='now')
+uploaded_file_past = st.sidebar.file_uploader('実績', type='xlsx', key='past')
 df_past = DataFrame()
 if uploaded_file_past:
     df_past = pd.read_excel(
@@ -53,6 +53,17 @@ df_now['氏名2'] = df_now['氏名'].map(lambda x: x.replace(' ', ''))
 df_past['得意先名2'] = df_past['得意先名'].map(lambda x: x.replace('\u3000', '')) #全角スペース削除
 df_past['得意先名2'] = df_past['得意先名'].map(lambda x: x.replace(' ', '')) #半角スペース削除
 
+#日時表示　時間分消す
+df_now['来店日'] = pd.to_datetime(df_now['来店日'])
+df_now['来店日'] = df_now['来店日'].dt.date
+df_now['購入予定日'] = pd.to_datetime(df_now['購入予定日'])
+df_now['購入予定日'] = df_now['購入予定日'].dt.date
+df_past['必着日'] = pd.to_datetime(df_past['必着日'])
+df_past['必着日'] = df_past['必着日'].dt.date
+df_past['受注日'] = pd.to_datetime(df_past['受注日'])
+df_past['受注日'] = df_past['受注日'].dt.date
+
+
 def select_customer():
     name = st.text_input('氏名 ※スペースなし')
     df_now2 = df_now[df_now['氏名2']==name]
@@ -61,27 +72,27 @@ def select_customer():
 
     col1, col2, col3 = st.columns(3)
     with col1:
-        total_sum = str(df_past2['金額'].sum())
-        st.metric('購入金額', value=total_sum) 
+        total_sum = df_past2['金額'].sum()
+        st.metric('購入金額', value='{:,}'.format(total_sum)) 
     with col2:
         buy_count= df_past2['受注日'].nunique()
         st.metric('購入回数', value=buy_count) 
     with col3:
         min_date = str(df_past2['受注日'].min())
         min_date = min_date.split(' ')[0]
-        st.write('初回購入日') 
-        st.write(min_date)
+        st.metric('初回購入日', value=min_date)
+
+    #1000円単位でカンマ
+    df_now2['金額'] = df_now2['金額'].map(lambda x: '{:,}'.format(x)) 
+    df_past2['単価'] = df_past2['単価'].map(lambda x: '{:,}'.format(x))  
+    df_past2['金額'] = df_past2['金額'].map(lambda x: '{:,}'.format(x))
+
+    df_now2['確率'] = df_now2['確率'].map(lambda x: f'{x :0.1f}')   
 
     st.caption('来店情報')
     st.table(df_now2)
     st.caption('購入履歴')
     st.table(df_past2)
-
-
-
-
-
-
 
 def main():
     # アプリケーション名と対応する関数のマッピング
