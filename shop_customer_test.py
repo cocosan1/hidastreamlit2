@@ -8,12 +8,12 @@ import datetime
 st.set_page_config(page_title='顧客管理')
 st.markdown('#### 顧客管理')
 
-# ***ファイルアップロード 今期***
+# ***ファイルアップロード 来店状況***
 uploaded_file_now = st.sidebar.file_uploader('顧客情報', type='xlsx', key='now')
 df_now = DataFrame()
 if uploaded_file_now:
     df_now = pd.read_excel(
-        uploaded_file_now, sheet_name='Sheet1')  # index　ナンバー不要　index_col=0
+        uploaded_file_now, sheet_name='Sheet1', usecols=[1, 3, 4, 8, 9, 10, 13, 18, 19, 23, 25])  # index　ナンバー不要　index_col=0
 else:
     st.info('顧客情報のファイルを選択してください。')
 
@@ -32,8 +32,8 @@ else:
 df_past[['数量', '単価', '金額']] = df_past[['数量', '単価', '金額']].fillna(0).astype('int')
 
 # 氏名からスペースの削除
-df_now['氏名2'] = df_now['氏名'].map(lambda x: x.replace('\u3000', '')) #全角スペース削除
-df_now['氏名2'] = df_now['氏名'].map(lambda x: x.replace(' ', ''))    
+df_now['氏名2'] = df_now['氏　名'].map(lambda x: x.replace('\u3000', '')) #全角スペース削除
+df_now['氏名2'] = df_now['氏　名'].map(lambda x: x.replace(' ', ''))    
 
 # 氏名からスペースの削除
 df_past['得意先名2'] = df_past['得意先名'].map(lambda x: x.replace('\u3000', '')) #全角スペース削除
@@ -55,6 +55,9 @@ def select_customer():
     df_now2 = df_now[df_now['氏名2']==name]
     df_past2 =df_past[df_past['得意先名2']==name]
     df_past2 = df_past2.sort_values('受注日')
+
+    st.caption('住所')
+    st.write(df_now2['地　域'][0])
 
     col1, col2, col3 = st.columns(3)
     with col1:
