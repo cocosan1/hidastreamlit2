@@ -5,7 +5,7 @@ import streamlit as st
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import openpyxl
-from streamlit.state.session_state import Value
+# from streamlit.state.session_state import Value
 
 st.set_page_config(page_title='ranking')
 st.markdown('#### 品番別分析')

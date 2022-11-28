@@ -6,7 +6,7 @@ import streamlit as st
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import openpyxl
-from streamlit.state.session_state import Value
+# from streamlit.state.session_state import Value
 import math
 
 st.set_page_config(page_title='売り上げ分析（得意先別）')
