@@ -13,7 +13,7 @@ uploaded_file_now = st.sidebar.file_uploader('顧客情報', type='xlsx', key='n
 df_now = DataFrame()
 if uploaded_file_now:
     df_now = pd.read_excel(
-        uploaded_file_now, sheet_name='Sheet1', usecols=[1, 3, 4, 8, 9, 10, 13, 18, 19, 23, 25])  # index　ナンバー不要　index_col=0
+        uploaded_file_now, sheet_name='Sheet1', usecols=[0, 3, 4, 8, 9, 10, 13, 18, 19, 23, 24])  # index　ナンバー不要　index_col=0
 else:
     st.info('顧客情報のファイルを選択してください。')
 
@@ -22,7 +22,7 @@ uploaded_file_past = st.sidebar.file_uploader('実績', type='xlsx', key='past')
 df_past = DataFrame()
 if uploaded_file_past:
     df_past = pd.read_excel(
-        uploaded_file_past, sheet_name='受注委託移動在庫生産照会', usecols=[1, 3, 7, 8, 10, 14, 15, 16, 43, 44],\
+        uploaded_file_past, sheet_name='受注委託移動在庫生産照会', usecols=[1, 3, 7, 8, 10, 14, 15, 16, 17],\
             index_col=0)  # index　ナンバー不要　index_col=0
 else:
     st.info('実績のファイルを選択してください。')
@@ -40,10 +40,10 @@ df_past['得意先名2'] = df_past['得意先名'].map(lambda x: x.replace('\u30
 df_past['得意先名2'] = df_past['得意先名'].map(lambda x: x.replace(' ', '')) #半角スペース削除
 
 #日時表示　時間分消す
-# df_now['タイムスタンプ'] = pd.to_datetime(df_now['タイムスタンプ'])
-# df_now['タイムスタンプ'] = df_now['タイムスタンプ'].dt.date
-# df_now['購入予定日'] = pd.to_datetime(df_now['購入予定日'])
-# df_now['購入予定日'] = df_now['購入予定日'].dt.date
+df_now['タイムスタンプ'] = pd.to_datetime(df_now['タイムスタンプ'])
+df_now['タイムスタンプ'] = df_now['タイムスタンプ'].dt.date
+df_now['購入予定または納品希望時期'] = pd.to_datetime(df_now['購入予定または納品希望時期'])
+df_now['購入予定または納品希望時期'] = df_now['購入予定または納品希望時期'].dt.date
 df_past['必着日'] = pd.to_datetime(df_past['必着日'])
 df_past['必着日'] = df_past['必着日'].dt.date
 df_past['受注日'] = pd.to_datetime(df_past['受注日'])
@@ -56,8 +56,9 @@ def select_customer():
     df_past2 =df_past[df_past['得意先名2']==name]
     df_past2 = df_past2.sort_values('受注日')
 
-    st.caption('住所')
-    st.write(df_now2['地　域'][0])
+    # st.caption('住所')
+    # area = df_now2['地　域'][0]
+    # st.write(area)
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -72,14 +73,24 @@ def select_customer():
         st.metric('初回購入日', value=min_date)
 
     #1000円単位でカンマ
-    df_now2['見積金額'] = df_now2['見積金額'].map(lambda x: '{:,}'.format(x)) 
+    # df_now2['見積金額'] = df_now2['見積金額'].map(lambda x: '{:,}'.format(x)) 
     df_past2['単価'] = df_past2['単価'].map(lambda x: '{:,}'.format(x))  
     df_past2['金額'] = df_past2['金額'].map(lambda x: '{:,}'.format(x))
 
-    # df_now2['確率'] = df_now2['確率'].map(lambda x: f'{x :0.1f}')   
+    # df_now2['確率'] = df_now2['確率'].map(lambda x: f'{x :0.1f}')  
 
-    st.caption('来店情報')
-    st.table(df_now2)
+    st.caption('お客様情報1')
+    st.table(df_now2[['地　域', '家族構成']]) 
+    st.caption('お客様情報2')
+    st.table(df_now2[['購入予定または納品希望時期', 'ご紹介の場合　企業名　及び　担当者名', '担当　スタッフ']]) 
+    st.caption('見積もり内容')
+    st.table(df_now2[['見積内容', '見積金額']]) 
+    st.caption('コメント')
+    st.table(df_now2[['コメント欄']]) 
+    st.caption('来店履歴')
+    st.table(df_now2[['タイムスタンプ']]) 
+
+
     st.caption('購入履歴')
     st.table(df_past2)
 
