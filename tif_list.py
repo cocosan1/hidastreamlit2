@@ -689,6 +689,135 @@ def hinban_sum():
     df_result = pd.DataFrame(list(zip(hinban_sum_now_list, hinabn_sum_last_list, ratio, diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])
     st.dataframe(df_result)
 
+def category_fabric():
+    df_now2 = df_now.rename(columns={'商　品　名': '商品名'})
+    df_last2 = df_last.rename(columns={'商　品　名': '商品名'})
+     # *** selectbox***
+    category = ['ダイニングチェア', 'リビングチェア']
+    option_category = st.selectbox(
+        'category:',
+        category,   
+    ) 
+    categorybase_now = df_now2[df_now2['商品分類名2']==option_category]
+    categorybase_last = df_last2[df_last2['商品分類名2']==option_category]
+    # categorybase_now = categorybase_now[categorybase_now['張地'] != ''] #空欄を抜いたdf作成
+    # categorybase_last = categorybase_last[categorybase_last['張地'] != '']
+    
+    fab_name_now = []
+    for name in categorybase_now['商品名']:
+
+        name_s = name.split(' ')
+        if name_s[2]=='TIFﾗﾝｸ布':
+            fab = name_s[-1]
+        else:
+            fab = name_s[2]
+        fab_name_now.append(fab)    
+    
+    categorybase_now['fabric'] = fab_name_now
+
+    fab_name_last = []
+    for name in categorybase_last['商品名']:
+
+        name_s = name.split(' ')
+        if name_s[2]=='TIFﾗﾝｸ布':
+            fab = name_s[-1]
+        else:
+            fab = name_s[2]
+        fab_name_last.append(fab)    
+    
+    categorybase_last['fabric'] = fab_name_last
+
+    col1, col2 = st.columns(2)
+    with col1:
+        # ***張地別売り上げ ***
+        fabric_now = categorybase_now.groupby('fabric')['金額'].sum().sort_values(ascending=False).head(12) #降順
+        #fabric2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+        st.markdown('###### 張地別売上(今期)')
+
+        # グラフ
+        fig_fabric_now = go.Figure()
+        fig_fabric_now.add_trace(
+            go.Bar(
+                x=fabric_now.index,
+                y=fabric_now,
+                )
+        )
+        fig_fabric_now.update_layout(
+            height=500,
+            width=2000,
+        )        
+        
+        st.plotly_chart(fig_fabric_now, use_container_width=True)
+
+    with col2:
+        # ***張地別売り上げ ***
+        fabric_last = categorybase_last.groupby('fabric')['金額'].sum().sort_values(ascending=False).head(12) #降順
+        #fabric2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+        st.markdown('###### 張地別売上(前期)')
+
+        # グラフ
+        fig_fabric_last = go.Figure()
+        fig_fabric_last.add_trace(
+            go.Bar(
+                x=fabric_last.index,
+                y=fabric_last,
+                )
+        )
+        fig_fabric_last.update_layout(
+            height=500,
+            width=2000,
+        )        
+        
+        st.plotly_chart(fig_fabric_last, use_container_width=True)    
+
+    with col1:
+        # グラフ　張地別売り上げ
+        st.markdown('張地別売上構成比(今期)')
+        fig_fabric_now2 = go.Figure(
+            data=[
+                go.Pie(
+                    labels=fabric_now.index,
+                    values=fabric_now
+                    )])
+        fig_fabric_now2.update_layout(
+            legend=dict(
+                x=-1, #x座標　グラフの左下(0, 0) グラフの右上(1, 1)
+                y=0.99, #y座標
+                xanchor='left', #x座標が凡例のどの位置を指すか
+                yanchor='top', #y座標が凡例のどの位置を指すか
+                ),
+            height=290,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_fabric_now2.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_fabric_now2, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
+    with col2:
+        # グラフ　張地別売り上げ
+        st.markdown('張地別売上構成比(前期)')
+        fig_fabric_last2 = go.Figure(
+            data=[
+                go.Pie(
+                    labels=fabric_last.index,
+                    values=fabric_last
+                    )])
+        fig_fabric_last2.update_layout(
+            legend=dict(
+                x=-1, #x座標　グラフの左下(0, 0) グラフの右上(1, 1)
+                y=0.99, #y座標
+                xanchor='left', #x座標が凡例のどの位置を指すか
+                yanchor='top', #y座標が凡例のどの位置を指すか
+                ),
+            height=290,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_fabric_last2.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_fabric_last2, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅    
+
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
@@ -705,6 +834,7 @@ def main():
         'オリ売上月毎 店別/分類/シリーズ●': original_category_series_earnings,
         '品番別数量 全体●': hinban_count,
         '品番別金額 全体●': hinban_sum,
+        '張地別売上': category_fabric,
         
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
