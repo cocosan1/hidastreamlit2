@@ -35,7 +35,45 @@ df['HTS形状'] = df['商　品　名'].map(lambda x: x.split()[1] if len(x.spli
 
 df2 = df[df['商品分類名2'].isin(['ダイニングチェア', 'リビングチェア'])]
 
-def ranking():
+def ranking_series():
+    # *** selectbox 商品分類2***
+    category = ['リビングチェア', 'ダイニングチェア']
+    option_category = st.selectbox(
+        'category:',
+        category,   
+    )
+    df_cate = df2[df2['商品分類名2']==option_category]
+
+    # *** selectbox シリーズ名***
+    series_list = df_cate['シリーズ名'].unique()
+    option_series = st.selectbox(
+        'series:',
+        series_list,   
+    )
+    df_cate_seri = df_cate[df_cate['シリーズ名']==option_series]
+        
+    df_cate_seri = df_cate_seri[df_cate_seri['張地'] != ''] #空欄を抜いたdf作成
+
+    df_result= df_cate_seri.groupby(['張地'])['数量'].sum().sort_values(ascending=False).head(12)
+
+    # グラフ　張布売り上げ
+    st.write('ランキング 張地別')
+    fig_fabric = go.Figure()
+    fig_fabric.add_trace(
+        go.Bar(
+            x=df_result.index,
+            y=df_result,
+            )
+    )
+    fig_fabric.update_layout(
+        height=500,
+        width=2000,
+    )        
+    
+    st.plotly_chart(fig_fabric, use_container_width=True)
+    st.caption('※ダイニングチェアの場合、張地空欄は板座')
+
+def ranking_item():
     # *** selectbox 商品分類2***
     category = ['ダイニングチェア', 'リビングチェア']
     option_category = st.selectbox(
@@ -198,7 +236,8 @@ def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        'ランキング 張地': ranking,
+        'ランキング シリーズ': ranking_series,
+        'ランキング アイテム': ranking_item,
         '品番別粗利率': profit,
         '侭　サイズランキング': hts_width,
         '侭　天板形状ランキング': hts_shape,
