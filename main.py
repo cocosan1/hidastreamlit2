@@ -246,8 +246,10 @@ def hokkaido_fushi_kokusanzai():
         kokusanzai_diff = f'{(kokusanzai_now_t/df_now_total*100) - (kokusanzai_last_t/df_last_total*100): 0.1f} %'
         st.metric('国産材比率', value=f'{kokusanzai_now_t/df_now_total*100: 0.1f} %', delta=kokusanzai_diff) #小数点以下1ケタ
         st.caption(f'前年 {kokusanzai_last_t/df_last_total*100: 0.1f} %')
-        st.caption('北海道民芸家具/HIDA/Northern Forest/北海道HMその他/杉座/ｿﾌｨｵ SUGI/風のうた/Kinoe/SUWARI/KURINOKI/HJ/SG261M/\
-            SG261(K/C/M)/SG261A(K/C/M)/KD201(K/C/M)/KD201A(K/C/M)')
+        st.caption('北海道民芸家具/HIDA/Northern Forest/北海道HMその他/杉座/\
+            ｿﾌｨｵ SUGI/風のうた/Kinoe/SUWARI/KURINOKI/\
+            HJ/SG261M/SG261(K/C/M)/SG261A(K/C/M)/\
+            KD201(K/C/M)/KD201A(K/C/M)')
         # st.caption('ｿﾌｨｵ SUGI/風のうた/Kinoe/SUWARI/KURINOKI/HJ/SG261M/')
         # st.caption('SG261(K/C/M)/SG261A(K/C/M)/KD201(K/C/M)/KD201A(K/C/M)')
 
