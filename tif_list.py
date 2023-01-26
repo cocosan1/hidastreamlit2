@@ -712,6 +712,76 @@ def original_category_series_earnings():
     st.caption('今期売上')
     st.table(df_result)
 
+    def mean_sales():
+        st.write('#### 平均成約単価')
+
+        columns_list = ['今期', '前期', '対前年差', '対前年比']
+
+        order_num_now = []
+        for num in df_now['伝票番号']:
+            num2 = num.split('-')[0]
+            order_num_now.append(num2)
+        df_now['order_num'] = order_num_now
+
+        order_num_last = []
+        for num in df_last['伝票番号']:
+            num2 = num.split('-')[0]
+            order_num_last.append(num2)
+        df_last['order_num'] = order_num_last
+
+        earnings_now = []
+        earnings_last = []
+        earnings_diff = []
+        earnings_rate = []
+
+        cust_list = df_now['得意先名'].unique()
+
+        for cust in cust_list:
+            df_now_cust = df_now[df_now['得意先名']==cust]
+            df_last_cust = df_last[df_last['得意先名']==cust]
+
+            df_now_cust_order = df_now_cust.groupby('order_num')['金額'].sum()
+            df_last_cust_order = df_last_cust.groupby('order_num')['金額'].sum()
+
+            df_now_cust_order.mean()
+            df_last_cust_order.mean()
+
+            mean_diff = df_now_cust_order - df_last_cust_order
+
+            if df_last_cust_order == 0:
+                order_mean_rate = '0%'
+            else:
+                order_mean_rate = f'{(df_now_cust_order / df_last_cust_order)*100: 0.1f} %'
+
+            earnings_now.append(df_now_cust_order)
+            earnings_last.append(df_last_cust_order)
+            earnings_diff.append(mean_diff)
+            earnings_rate.append(order_mean_rate)  
+
+        df_mean_earninngs = pd.DataFrame(list(zip(earnings_now, earnings_last, earnings_diff, earnings_rate)),\
+             columns=columns_list, index=cust_list)
+        st.caption('受注ベース') 
+
+        col1, col2 = st.columns(2)
+
+        with col1:
+            st.metric('今期平均', value='{:,}'.format(int(df_mean_earninngs['今期'].mean())), \
+                delta='{:,}'.format(int(df_mean_earninngs['対前年差'].mean())))
+
+        with col2:
+            st.metric('前期平均', value='{:,}'.format(int(df_mean_earninngs['前期'].mean()))) 
+
+        df_mean_earninngs.fillna(0, inplace=True)
+        df_mean_earninngs['今期'] = \
+            df_mean_earninngs['今期'].map(lambda x: '{:,}'.format(int(x))) 
+        df_mean_earninngs['前期'] = \
+            df_mean_earninngs['前期'].map(lambda x: '{:,}'.format(int(x))) 
+        df_mean_earninngs['対前年差'] = \
+            df_mean_earninngs['対前年差'].map(lambda x: '{:,}'.format(int(x)))   
+        
+        st.table(df_mean_earninngs)  
+
+
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
@@ -728,6 +798,7 @@ def main():
         'オリ売上累計 店別/分類/シリーズ●':original_category_seriesearnings_sum,
         'オリ売上月毎 店別/シリーズ/分類●': original_series_category_earnings,
         'オリ売上月毎 店別/分類/シリーズ●': original_category_series_earnings,
+        '平均成約単価/店舗別': mean_sales
         
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',

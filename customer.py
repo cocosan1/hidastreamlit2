@@ -105,7 +105,7 @@ def earnings_comparison_month():
     st.caption('受注月ベース')
     st.table(df_earnings_month)
 
-def mean_erning_month():
+def mean_earning_month():
     st.write('#### 平均成約単価')
     month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
     columns_list = ['今期', '前期', '対前年差', '対前年比']
@@ -902,7 +902,7 @@ def main():
         '-': None,
         '★売上 対前年比(累計)●': earnings_comparison_year,
         '★売上 対前年比(月毎)●': earnings_comparison_month,
-        '平均成約単価': mean_erning_month,
+        '平均成約単価': mean_earning_month,
         '★LD 前年比/構成比●': living_dining_comparison,
         '★LD シリーズ別/売上構成比●': living_dining_comparison_ld,
         '商品分類 シリーズ別 売上/構成比●': series,
