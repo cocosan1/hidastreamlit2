@@ -34,9 +34,13 @@ else:
 # *** 出荷月、受注月列の追加***
 df_now['出荷月'] = df_now['出荷日'].dt.month
 df_now['受注月'] = df_now['受注日'].dt.month
+df_now['商品コード2'] = df_now['商　品　名'].map(lambda x: x.split()[0]) #品番
+df_now['商品コード3'] = df_now['商　品　名'].map(lambda x: str(x)[0:2]) #頭品番
 df_now['張地'] = df_now['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
 df_last['出荷月'] = df_last['出荷日'].dt.month
 df_last['受注月'] = df_last['受注日'].dt.month
+df_last['商品コード2'] = df_last['商　品　名'].map(lambda x: x.split()[0])
+df_last['商品コード3'] = df_last['商　品　名'].map(lambda x: str(x)[0:2]) #頭品番
 df_last['張地'] = df_last['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
 
 # ***INT型への変更***
@@ -462,37 +466,6 @@ def item_count_category():
     df_item_count = pd.DataFrame(list(zip(count_now, count_last, diff)), index=index, columns=['今期', '前期', '対前年差'])
     st.table(df_item_count) #列幅問題未解決   
 
-def item_count_series():
-    # *** selectbox 得意先名***
-    series = df_now_cust['シリーズ名'].unique()
-    option_series = st.selectbox(
-    'シリーズ名:',
-    series,   
-    )    
-    st.write('選択したシリーズ名: ', option_series)
-
-    index = []
-    count_now = []
-    count_last = []
-    diff = []
-
-    df_now_cust_series = df_now_cust[df_now_cust['シリーズ名']==option_series]
-    df_last_cust_series = df_last_cust[df_last_cust['シリーズ名']==option_series]
-    categories = df_now_cust[df_now_cust['シリーズ名']==option_series]['商品分類名2'].unique()
-    for category in categories:
-        index.append(category)
-        month_len = len(df_now['受注月'].unique())
-        df_now_cust_series_count_culc = df_now_cust_series[df_now_cust_series['商品分類名2']==category]['数量'].sum()
-        df_last_cust_series_count_culc = df_last_cust_series[df_last_cust_series['商品分類名2']==category]['数量'].sum()
-
-        count_now.append(f'{df_now_cust_series_count_culc/month_len: 0.1f}')
-        count_last.append(f'{df_last_cust_series_count_culc/month_len: 0.1f}')
-        diff.append(f'{(df_now_cust_series_count_culc/month_len) - (df_last_cust_series_count_culc/month_len):0.1f}')
-
-    st.write('回転数/月平均')
-    df_item_count = pd.DataFrame(list(zip(count_now, count_last, diff)), index=index, columns=['今期', '前期', '対前年差'])
-    st.table(df_item_count) #列幅問題未解決
-
 def category_count_month():
     #　回転数 商品分類別 月毎
     # *** selectbox シリーズ名***
@@ -515,63 +488,7 @@ def category_count_month():
         df_count[month] = count_now
         count_now = []
     st.caption('今期')
-    st.table(df_count)
-
-
-
-def series_count_month():
-    #　回転数 商品分類別 月毎
-    # *** selectbox シリーズ名***
-    series_list = df_now_cust['シリーズ名'].unique()
-    option_series = st.selectbox(
-    'シリーズ名:',
-    series_list,   
-    ) 
-    df_now_cust_series = df_now_cust[df_now_cust['シリーズ名']==option_series]
-    
-    months = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    count_now = []
-    df_now_cust_series = df_now_cust[df_now_cust['シリーズ名']==option_series]
-    categories = df_now_cust_series['商品分類名2'].unique()
-    df_count = pd.DataFrame(index=categories)
-    for month in months:
-        for category in categories:
-            df_now_cust_series_cat = df_now_cust_series[df_now_cust_series['商品分類名2']==category]
-            count = df_now_cust_series_cat[df_now_cust_series_cat['受注月']==month]['数量'].sum()
-            count_now.append(count)
-        df_count[month] = count_now
-        count_now = []
-    st.caption('今期')
-    st.table(df_count)   
-
-def living_dining_latio():
-    col1, col2, col3 = st.columns(3)
-    cust_now = df_now[df_now['得意先名']== option_customer]
-    cust_last = df_last[df_last['得意先名']== option_customer]
-    total_now = cust_now['金額'].sum()
-    total_last = cust_last['金額'].sum()
-
-    with col1:
-        living_now = cust_now[cust_now['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]['金額'].sum()
-        living_last = cust_last[cust_last['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]['金額'].sum()
-        living_diff = f'{(living_now/total_now*100) - (living_last/total_last*100):0.1f} %'
-        st.metric('リビング比率', value=f'{living_now/total_now*100: 0.1f} %', delta=living_diff)
-        st.caption(f'前年 {living_last/total_last*100: 0.1f} %')
-        st.caption('クッション/リビングチェア/リビングテーブル')
-    with col2:  
-        dining_now = cust_now[cust_now['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]['金額'].sum()
-        dining_last = cust_last[cust_last['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]['金額'].sum()
-        dining_diff = f'{(dining_now/total_now*100) - (dining_last/total_last*100):0.1f} %'
-        st.metric('ダイニング比率', value=f'{dining_now/total_now*100: 0.1f} %', delta=dining_diff)
-        st.caption(f'前年 {dining_last/total_last*100: 0.1f} %')  
-        st.caption('ダイニングテーブル/ダイニングチェア/ベンチ')
-    with col3:
-        sonota_now = cust_now[cust_now['商品分類名2'].isin(['キャビネット類', 'その他テーブル', '雑品・特注品', 'その他椅子', 'デスク', '小物・その他'])]['金額'].sum()
-        sonota_last = cust_last[cust_last['商品分類名2'].isin(['キャビネット類', 'その他テーブル', '雑品・特注品', 'その他椅子', 'デスク', '小物・その他'])]['金額'].sum()
-        sonota_diff =  f'{(sonota_now/total_now*100) - (sonota_last/total_last*100):0.1f} %'
-        st.metric('その他比率', value=f'{sonota_now/total_now*100: 0.1f} %', delta=sonota_diff) 
-        st.caption(f'前年 {sonota_last/total_last*100: 0.1f} 円')  
-        st.caption('キャビネット類/その他テーブル/雑品・特注品/その他椅子/デスク/小物・その他')
+    st.table(df_count) 
 
 def hokkaido_fushi_kokusanzai():
     # *** 北海道比率　節材比率　国産材比率 ***
@@ -580,6 +497,14 @@ def hokkaido_fushi_kokusanzai():
     cust_last = df_last[df_last['得意先名']== option_customer]
     total_now = cust_now['金額'].sum()
     total_last = cust_last['金額'].sum()
+
+    #分類の詳細
+    with st.expander('分類の詳細'):
+        st.write('【節あり】森のことば/LEVITA (ﾚｳﾞｨﾀ)/森の記憶/とき葉/森のことばIBUKI/森のことば ウォルナット')
+        st.write('【国産材1】北海道民芸家具/HIDA/Northern Forest/北海道HMその他/杉座/ｿﾌｨｵ SUGI/風のうた\
+            Kinoe/SUWARI/KURINOKI')
+        st.write('【国産材2】SG261M/SG261K/SG261C/SG261AM/SG261AK/SG261AC/KD201M/KD201K/KD201C\
+                 KD201AM/KD201AK/KD201AC')
     with col1:
         hokkaido_now = cust_now[cust_now['出荷倉庫']==510]['金額'].sum()
         hokkaido_last = cust_last[cust_last['出荷倉庫']==510]['金額'].sum()
@@ -597,19 +522,28 @@ def hokkaido_fushi_kokusanzai():
         fushi_diff = f'{(fushi_now/total_now*100) - (fushi_last/total_last*100):0.1f} %'
         st.metric('節材比率', value=f'{fushi_now/total_now*100: 0.1f} %', delta=fushi_diff) #小数点以下1ケタ
         st.caption(f'前年 {fushi_last/total_last*100:0.1f} %')
-        st.caption('森のことば/LEVITA (ﾚｳﾞｨﾀ)/森の記憶/とき葉/森のことばIBUKI/森のことば ウォルナット')
+
     with col3:
-        kokusanzai_now = cust_now[cust_now['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
-        '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum() #SHSカバ拾えていない
-        kokusanzai_last = cust_last[cust_last['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
-        '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum() #SHSカバ拾えていない
-        kokusanzai_diff = f'{(kokusanzai_now/total_now*100) - (kokusanzai_last/total_last*100):0.1f} %'
-        st.metric('国産材比率', value=f'{kokusanzai_now/total_now*100: 0.1f} %', delta=kokusanzai_diff) #小数点以下1ケタ
-        st.caption(f'前年 {kokusanzai_last/total_last*100: 0.1f} %')
-        st.caption('北海道民芸家具/HIDA/Northern Forest/北海道HMその他/杉座/ｿﾌｨｵ SUGI/風のうた/Kinoe')
+        kokusanzai_now1 = cust_now[cust_now['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
+        '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe', 'SUWARI', 'KURINOKI'])]['金額'].sum() #SHSカバ拾えていない
+        kokusanzai_last1 = cust_last[cust_last['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
+        '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe', 'SUWARI', 'KURINOKI'])]['金額'].sum() #SHSカバ拾えていない
+
+        kokusanzai_now2 = cust_now[cust_now['商品コード2'].isin(['SG261M', 'SG261K', 'SG261C', 'SG261AM', 'SG261AK', 'SG261AC', 'KD201M', 'KD201K', 'KD201C', 'KD201AM', 'KD201AK', 'KD201AC'])]['金額'].sum()
+        kokusanzai_last2 = cust_last[cust_last['商品コード2'].isin(['SG261M', 'SG261K', 'SG261C', 'SG261AM', 'SG261AK', 'SG261AC', 'KD201M', 'KD201K', 'KD201C', 'KD201AM', 'KD201AK', 'KD201AC'])]['金額'].sum()
+        
+        kokusanzai_now3 = cust_now[cust_now['商品コード3']=='HJ']['金額'].sum()
+        kokusanzai_last3 = cust_last[cust_last['商品コード3']=='HJ']['金額'].sum()
+
+        kokusanzai_now_t = kokusanzai_now1 + kokusanzai_now2 + kokusanzai_now3
+        kokusanzai_last_t = kokusanzai_last1 + kokusanzai_last2 + kokusanzai_last3 
+
+        kokusanzai_diff = f'{(kokusanzai_now_t/df_now_total*100) - (kokusanzai_last_t/df_last_total*100): 0.1f} %'
+        st.metric('国産材比率', value=f'{kokusanzai_now_t/df_now_total*100: 0.1f} %', delta=kokusanzai_diff) #小数点以下1ケタ
+        st.caption(f'前年 {kokusanzai_last_t/df_last_total*100: 0.1f} %')
 
 def profit_aroma():
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     cust_now = df_now[df_now['得意先名']== option_customer]
     cust_last = df_last[df_last['得意先名']== option_customer]
     total_now = cust_now['金額'].sum()
@@ -621,7 +555,14 @@ def profit_aroma():
     with col1:
         st.metric('粗利率', value=f'{(total_now-cost_now)/total_now*100: 0.1f} %', delta=diff)
         st.caption(f'前年 {cost_last2}')
+
     with col2:
+        profit = '{:,}'.format(total_now-cost_now)
+        dif_profit = int((total_now-cost_now) - (total_last-cost_last))
+        st.metric('粗利額', value=profit, delta=dif_profit)
+        st.caption(f'前年 {total_last-cost_last}')
+
+    with col3:
         aroma_now = cust_now[cust_now['シリーズ名'].isin(['きつつき森の研究所'])]['金額'].sum()
         aroma_last = cust_last[cust_last['シリーズ名'].isin(['きつつき森の研究所'])]['金額'].sum()
         aroma_last2 = '{:,}'.format(aroma_last)
@@ -730,10 +671,10 @@ def category_color():
     col1, col2 = st.columns(2)
 
     with col1:
-        # ***塗色別売り上げ ***
-        color_now = categorybase_cust_now.groupby('塗色CD')['金額'].sum().sort_values(ascending=False) #降順
+        # ***塗色別数量 ***
+        color_now = categorybase_cust_now.groupby('塗色CD')['数量'].sum().sort_values(ascending=False) #降順
         #color_now2 = color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
-        st.markdown('###### 塗色別売上(今期)')
+        st.markdown('###### 塗色別数量(今期)')
 
         # グラフ
         fig_color_now = go.Figure()
@@ -751,10 +692,10 @@ def category_color():
         st.plotly_chart(fig_color_now, use_container_width=True)
 
     with col2:
-        # ***塗色別売り上げ ***
-        color_last = categorybase_cust_last.groupby('塗色CD')['金額'].sum().sort_values(ascending=False) #降順
+        # ***塗色別数量 ***
+        color_last = categorybase_cust_last.groupby('塗色CD')['数量'].sum().sort_values(ascending=False) #降順
         #color_last2 = color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
-        st.markdown('###### 塗色別売上(前期)')
+        st.markdown('###### 塗色別数量(前期)')
 
         # グラフ
         fig_color_last = go.Figure()
@@ -772,8 +713,8 @@ def category_color():
         st.plotly_chart(fig_color_last, use_container_width=True)    
 
     with col1:    
-        # グラフ　塗色別売り上げ
-        st.markdown('###### 塗色別売上構成比(今期)')
+        # グラフ　塗色別数量
+        st.markdown('###### 塗色別数量構成比(今期)')
         fig_color_now2 = go.Figure(
             data=[
                 go.Pie(
@@ -791,8 +732,8 @@ def category_color():
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
     with col2:    
-        # グラフ　塗色別売り上げ
-        st.markdown('###### 塗色別売上構成比(前期)')
+        # グラフ　塗色別数量
+        st.markdown('###### 塗色別数量構成比(前期)')
         fig_color_last2 = go.Figure(
             data=[
                 go.Pie(
@@ -849,10 +790,10 @@ def category_fabric():
 
     col1, col2 = st.columns(2)
     with col1:
-        # ***張地別売り上げ ***
-        fabric_now = categorybase_cust_now.groupby('fabric')['金額'].sum().sort_values(ascending=False).head(12) #降順
+        # ***張地別数量 ***
+        fabric_now = categorybase_cust_now.groupby('fabric')['数量'].sum().sort_values(ascending=False).head(12) #降順
         #fabric2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
-        st.markdown('###### 張地別売上(今期)')
+        st.markdown('###### 張地別数量(今期)')
 
         # グラフ
         fig_fabric_now = go.Figure()
@@ -871,9 +812,9 @@ def category_fabric():
 
     with col2:
         # ***張地別売り上げ ***
-        fabric_last = categorybase_cust_last.groupby('fabric')['金額'].sum().sort_values(ascending=False).head(12) #降順
+        fabric_last = categorybase_cust_last.groupby('fabric')['数量'].sum().sort_values(ascending=False).head(12) #降順
         #fabric2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
-        st.markdown('###### 張地別売上(前期)')
+        st.markdown('###### 張地別数量(前期)')
 
         # グラフ
         fig_fabric_last = go.Figure()
@@ -891,8 +832,8 @@ def category_fabric():
         st.plotly_chart(fig_fabric_last, use_container_width=True)    
 
     with col1:
-        # グラフ　張地別売り上げ
-        st.markdown('張地別売上構成比(今期)')
+        # グラフ　張地別数量
+        st.markdown('張地別数量構成比(今期)')
         fig_fabric_now2 = go.Figure(
             data=[
                 go.Pie(
@@ -915,8 +856,8 @@ def category_fabric():
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
     with col2:
-        # グラフ　張地別売り上げ
-        st.markdown('張地別売上構成比(前期)')
+        # グラフ　張地別数量
+        st.markdown('張地別数量構成比(前期)')
         fig_fabric_last2 = go.Figure(
             data=[
                 go.Pie(
@@ -977,22 +918,18 @@ def series_col_fab():
     col1, col2 = st.columns(2)
 
     with col1:
-        # *** シリース別塗色別売上 ***
-        series_color_now = categorybase_cust_now.groupby(['シリーズ名', '塗色CD', 'fabric'])['金額'].sum().sort_values(ascending=False).head(20) #降順
+        # *** シリース別塗色別数量 ***
+        series_color_now = categorybase_cust_now.groupby(['シリーズ名', '塗色CD', 'fabric'])['数量'].sum().sort_values(ascending=False).head(20) #降順
         series_color_now2 = series_color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.markdown('###### 売れ筋ランキング 商品分類別(今期)')
         st.table(series_color_now2)
 
     with col2:
         # **シリーズ別塗色別売上 ***
-        series_color_last = categorybase_cust_last.groupby(['シリーズ名', '塗色CD', 'fabric'])['金額'].sum().sort_values(ascending=False).head(20) #降順
+        series_color_last = categorybase_cust_last.groupby(['シリーズ名', '塗色CD', 'fabric'])['数量'].sum().sort_values(ascending=False).head(20) #降順
         series_color_last2 = series_color_last.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.write('###### 売れ筋ランキング 商品分類別(前期)')
         st.table(series_color_last2)
-
-def remarks():
-    st.markdown('##### 備考')
-    st.write('12/27 回転数 リビングチェアにスツールがカウントされている')
 
 
 def main():
@@ -1004,19 +941,15 @@ def main():
         '平均成約単価': mean_erning_month,
         '★LD 前年比/構成比●': living_dining_comparison,
         '★LD シリーズ別/売上構成比●': living_dining_comparison_ld,
-        'シリーズ別 売上/構成比●': series,
+        '商品分類 シリーズ別 売上/構成比●': series,
         '★回転数 商品分類別●': item_count_category,
-        '回転数 シリーズ別●': item_count_series,
         '★回転数 商品分類別 月毎●': category_count_month,
-        '回転数 シリーズ別 月毎●': series_count_month,
-        '比率 リビング/ダイニング●': living_dining_latio,
         '★比率 北海道工場/節あり材/国産材●': hokkaido_fushi_kokusanzai, 
         '★比率 粗利/アロマ関連●': profit_aroma,
         '塗色別　売上構成比': color,
-        '塗色別 売上/構成比/商品分類別●': category_color,
-        '張地別 売上/構成比●': category_fabric,
-        '売れ筋ランキング 商品分類別/塗色/張地●': series_col_fab,
-        '備考': remarks,
+        '塗色別 数量/構成比/商品分類別●': category_color,
+        '張地別 数量/構成比●': category_fabric,
+        '売れ筋ランキング 商品分類別/塗色/張地●': series_col_fab
   
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
