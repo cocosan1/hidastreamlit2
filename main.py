@@ -254,19 +254,26 @@ def hokkaido_fushi_kokusanzai():
         # st.caption('SG261(K/C/M)/SG261A(K/C/M)/KD201(K/C/M)/KD201A(K/C/M)')
 
 def profit_aroma():
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
         cost_now = df_now['原価金額'].sum()
         cost_last = df_last['原価金額'].sum()
-        cost_diff = f'{((df_now_total-cost_now)/df_now_total*100) - ((df_last_total-cost_last)/df_last_total*100): 0.1f} %'
-        st.metric('粗利率', value=f'{(df_now_total-cost_now)/df_now_total*100: 0.1f} %', delta=cost_diff)
+        profitrate_diff = f'{((df_now_total-cost_now)/df_now_total*100) - ((df_last_total-cost_last)/df_last_total*100): 0.1f} %'
+        st.metric('粗利率', value=f'{(df_now_total-cost_now)/df_now_total*100: 0.1f} %', delta=profitrate_diff)
         st.caption(f'前年 {(df_last_total-cost_last)/df_last_total*100: 0.1f} %')
+
     with col2:
-        aroma_now = df_now[df_now['シリーズ名'].isin(['きつつき森の研究所'])]['金額'].sum()
-        aroma_last = df_last[df_last['シリーズ名'].isin(['きつつき森の研究所'])]['金額'].sum()
+        profit_diff = '{:,}'.format((df_now_total-cost_now) - (df_last_total-cost_last))
+        st.metric('粗利額', value='{:,}'.format(df_now_total-cost_now), delta=profit_diff)
+        profit_last = '{:,}'.format(df_last_total-cost_last)
+        st.caption(f'前年 {profit_last} ')
+
+    with col3:
+        aroma_now = df_now[df_now['シリーズ名'].isin(['Essenntial Oil & Aroma Goods'])]['金額'].sum()
+        aroma_last = df_last[df_last['シリーズ名'].isin(['Essenntial Oil & Aroma Goods'])]['金額'].sum()
         aroma_last2 = '{:,}'.format(aroma_last)
         aroma_diff = '{:,}'.format(aroma_now - aroma_last)
-        st.metric('きつつき森の研究所関連', value=('{:,}'.format(aroma_now)), delta=aroma_diff)
+        st.metric('Essenntial Oil & Aroma Goods', value=('{:,}'.format(aroma_now)), delta=aroma_diff)
         st.caption(f'前年 {aroma_last2}')
 
 def color():
@@ -471,7 +478,7 @@ def fabric():
         st.plotly_chart(fig_fabric, use_container_width=True) 
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅    
 
-def series():
+def series_sales():
     # *** selectbox 商品分類2***
     category = df_now['商品分類名2'].unique()
     option_category = st.selectbox(
@@ -563,6 +570,98 @@ def series():
         st.plotly_chart(fig_series_ratio, use_container_width=True) 
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
+def series_count():
+    # *** selectbox 商品分類2***
+    category = df_now['商品分類名2'].unique()
+    option_category = st.selectbox(
+        'category:',
+        category,   
+    ) 
+    st.caption('下段 構成比')
+    categorybase_now = df_now[df_now['商品分類名2']==option_category]
+    categorybase_last = df_last[df_last['商品分類名2']==option_category]
+
+    # ***シリーズ別売り上げ ***
+    series_now = categorybase_now.groupby('シリーズ名')['数量'].sum().sort_values(ascending=False).head(12) #降順
+    series_last = categorybase_last.groupby('シリーズ名')['数量'].sum().sort_values(ascending=False).head(12) #降順
+    series_now2 = series_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+    series_last2 = series_last.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+    # *** DF シリーズ別売り上げ ***
+
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        # グラフ　シリーズ別数量
+        st.write('シリーズ別数量(今期)')
+        fig_series = go.Figure()
+        fig_series.add_trace(
+            go.Bar(
+                x=series_now.index,
+                y=series_now,
+                )
+        )
+        fig_series.update_layout(
+            height=500,
+            width=2000,
+        )        
+        
+        st.plotly_chart(fig_series, use_container_width=True)
+
+    with col2:
+        # グラフ　シリーズ別数量
+        st.write('シリーズ別数量(前期)')
+        fig_series = go.Figure()
+        fig_series.add_trace(
+            go.Bar(
+                x=series_last.index,
+                y=series_last,
+                )
+        )
+        fig_series.update_layout(
+            height=500,
+            width=2000,
+        )        
+        
+        st.plotly_chart(fig_series, use_container_width=True)   
+
+    with col1:
+        # グラフ　シリーズ別数量構成比
+        st.write('シリーズ別数量構成比(今期)')
+        fig_series_ratio = go.Figure(
+            data=[
+                go.Pie(
+                    labels=series_now.index,
+                    values=series_now
+                    )])
+        fig_series_ratio.update_layout(
+            showlegend=True, #凡例表示
+            height=200,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_series_ratio.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_series_ratio, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
+    with col2:
+        # グラフ　シリーズ別数量構成比
+        st.write('シリーズ別数量構成比(前期)')
+        fig_series_ratio = go.Figure(
+            data=[
+                go.Pie(
+                    labels=series_last.index,
+                    values=series_last
+                    )])
+        fig_series_ratio.update_layout(
+            showlegend=True, #凡例表示
+            height=200,
+            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+            )
+        fig_series_ratio.update_traces(textposition='inside', textinfo='label+percent') 
+        #inside グラフ上にテキスト表示
+        st.plotly_chart(fig_series_ratio, use_container_width=True) 
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
 def series_col_fab():
      # *** selectbox 商品分類2***
     category = df_now['商品分類名2'].unique()
@@ -577,7 +676,7 @@ def series_col_fab():
     categorybase_now2 = categorybase_now2.apply('{:,}'.format)
     st.dataframe(categorybase_now2)
 
-def series_col_fab2():
+def series_col_fab2_sales():
 
     with st.form('入力フォーム'):
         # *** selectbox 商品分類2***
@@ -629,6 +728,58 @@ def series_col_fab2():
     st.plotly_chart(fig_fabric, use_container_width=True)
     st.caption('※ダイニングチェアの場合、張地空欄は板座')
 
+def series_col_fab2_count():
+
+    with st.form('入力フォーム'):
+        # *** selectbox 商品分類2***
+        category = ['ダイニングチェア', 'リビングチェア']
+        option_category = st.selectbox(
+            'category:',
+            category,   
+        ) 
+        
+        # *** selectbox シリーズ名***
+        series_list = df_now['シリーズ名'].unique()
+        option_series = st.selectbox(
+            'series:',
+            series_list,   
+        )  
+
+        # *** selectbox 塗色名***
+        color_list = df_now['塗色CD'].unique()
+        option_color = st.selectbox(
+            'color:',
+            color_list,   
+        )
+
+        submitted = st.form_submit_button('submit')
+        
+    categorybase_now = df_now[df_now['商品分類名2']==option_category]
+    seriesbase_now = categorybase_now[categorybase_now['シリーズ名']==option_series]    
+
+    colorbase_now = seriesbase_now[seriesbase_now['塗色CD']==option_color]
+    colorbase_now = colorbase_now[colorbase_now['張地'] != '']
+    # colorbase_now = colorbase_now.dropna(subset=['張地']) #['張地']に空欄がある場合行削除
+
+    colorbase_now2 = colorbase_now.groupby(['張地'])['数量'].sum().sort_values(ascending=False).head(10)
+
+    # グラフ　張布数量
+    st.write('張地数量 商品分類/シリース別/塗色別(今期)')
+    fig_fabric = go.Figure()
+    fig_fabric.add_trace(
+        go.Bar(
+            x=colorbase_now2.index,
+            y=colorbase_now2,
+            )
+    )
+    fig_fabric.update_layout(
+        height=500,
+        width=2000,
+    )        
+    
+    st.plotly_chart(fig_fabric, use_container_width=True)
+    st.caption('※ダイニングチェアの場合、張地空欄は板座')
+
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
@@ -641,9 +792,11 @@ def main():
         '粗利/売上 きつつき森の研究所●': profit_aroma,
         '塗色別 売上/構成比 (商品分類別)●': color,
         '張地別 売上/構成比 (商品分類別)●': fabric,
-        'シリーズ別 売上/構成比●': series,
+        'シリーズ別 売上/構成比●': series_sales,
+        'シリーズ別 数量/構成比●': series_count,
         '売れ筋ランキング 商品分類別/シリーズ別 塗色/張地●': series_col_fab,
-        '張地ランキング 商品分類別/シリーズ別/塗色別●': series_col_fab2,
+        '張地ランキング 売上●': series_col_fab2_sales,
+        '張地ランキング 数量●': series_col_fab2_count
         
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
