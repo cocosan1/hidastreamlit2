@@ -144,12 +144,23 @@ def original_ratio_d():
     
     diff_d = f'{((now_original_d_sum / sum_now_d)-(last_original_d_sum / sum_last_d))*100:0.1f} %'
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric('オリジナル比率 ダイニング （今期）', ratio_now_d, delta=diff_d )
+        dif_sales = int(now_original_d_sum - last_original_d_sum)
+        now_original_d_sum2 = '{:,}'.format(now_original_d_sum)
+        st.write('今期 オリジナル/ダイニング')
+        st.metric('売上', now_original_d_sum2, delta=dif_sales)
+        st.metric('オリジナル比率', ratio_now_d, delta=diff_d ) 
 
     with col2:
-        st.metric('オリジナル比率 ダイニング （前期）', ratio_last_d)    
+        last_original_d_sum2 = '{:,}'.format(last_original_d_sum)
+        st.write('前期 オリジナル/ダイニング')
+        st.metric('売上', last_original_d_sum2)
+        st.metric('オリジナル比率', ratio_last_d)
+
+    with col3:
+        lastyear_ratio = f'{(now_original_d_sum / last_original_d_sum)*100:0.1f} %' 
+        st.metric('売上 対前年比', lastyear_ratio)    
 
     customer_list = df_now['得意先名'].unique()
 
@@ -203,12 +214,23 @@ def original_ratio_l():
     
     diff_l = f'{((now_original_l_sum / sum_now_l) - (last_original_l_sum / sum_last_l))*100:0.1f} %'
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric('オリジナル比率 リビング （今期）', ratio_now_l, delta=diff_l )
+        dif_sales = int(now_original_l_sum - last_original_l_sum)
+        now_original_l_sum2 = '{:,}'.format(now_original_l_sum)
+        st.write('今期 オリジナル/リビング')
+        st.metric('売上', now_original_l_sum2, delta=dif_sales)
+        st.metric('オリジナル比率', ratio_now_l, delta=diff_l ) 
 
     with col2:
-        st.metric('オリジナル比率 リビング （前期）', ratio_last_l)
+        last_original_l_sum2 = '{:,}'.format(last_original_l_sum)
+        st.write('前期 オリジナル/リビング')
+        st.metric('売上', last_original_l_sum2)
+        st.metric('オリジナル比率', ratio_last_l)
+
+    with col3:
+        lastyear_ratio = f'{(now_original_l_sum / last_original_l_sum)*100:0.1f} %' 
+        st.metric('売上 対前年比', lastyear_ratio) 
 
     customer_list = df_now['得意先名'].unique()
 
@@ -325,6 +347,7 @@ def original_sum_ld():
     st.markdown('###### living')
     st.dataframe(df_l)
 
+#回転数/分類別/品番別 
 def category_hinban_cnt():
 
     # *** selectbox 商品分類2***
@@ -363,7 +386,39 @@ def category_hinban_cnt():
     df_result['対前期差'] = diff_list
 
     st.dataframe(df_result)
+#回転数/シリーズ別/品番別       
+def series_hinban_cnt():
+    # *** selectbox シリーズ***
+    series = df_now['シリーズ名'].unique()
+    option_series = st.selectbox(
+        'series:',
+        series,   
+    )
+    df_now_series = df_now[df_now['シリーズ名']==option_series]
+    df_last_series = df_last[df_last['シリーズ名']==option_series]
+    
+    hinban_list = df_now_series['商品コード2'].unique()
+    index = []
+    hinban_count_now_list = []
+    hinabn_count_last_list = []
+    diff = []
+    ratio = []
 
+    for hinban in hinban_list:
+        index.append(hinban)
+        hinabn_count_now = df_now_series[df_now_series['商品コード2']==hinban]['数量'].sum()
+        hinabn_count_last = df_last_series[df_last_series['商品コード2']==hinban]['数量'].sum()
+        hinban_count_now_list.append(hinabn_count_now)
+        hinabn_count_last_list.append(hinabn_count_last)
+        diff_culc = hinabn_count_now - hinabn_count_last
+        diff.append(diff_culc)
+        ratio_culc = f'{(hinabn_count_now / hinabn_count_last)*100:0.1f} %'
+        ratio.append(ratio_culc)
+
+    df_result = pd.DataFrame(list(zip(hinban_count_now_list, hinabn_count_last_list, ratio, diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])
+    st.dataframe(df_result) 
+       
+#回転数/品番別/得意先別
 def category_hinban_cust_cnt():
     # *** selectbox 商品分類2***
     category = df_now['商品分類名2'].unique()
@@ -408,7 +463,39 @@ def category_hinban_cust_cnt():
     df_result['対前期比'] = ratio_list
     df_result['対前期差'] = diff_list
 
-    st.dataframe(df_result)   
+    st.dataframe(df_result) 
+
+# 売上/シリーズ別/品番別
+def hinban_sum():
+    # *** selectbox シリーズ***
+    series = df_now['シリーズ名'].unique()
+    option_series = st.selectbox(
+        'series:',
+        series,   
+    )
+    df_now_series = df_now[df_now['シリーズ名']==option_series]
+    df_last_series = df_last[df_last['シリーズ名']==option_series]
+    
+    hinban_list = df_now_series['商品コード2'].unique()
+    index = []
+    hinban_sum_now_list = []
+    hinabn_sum_last_list = []
+    diff = []
+    ratio = []
+
+    for hinban in hinban_list:
+        index.append(hinban)
+        hinabn_sum_now = df_now_series[df_now_series['商品コード2']==hinban]['金額'].sum()
+        hinabn_sum_last = df_last_series[df_last_series['商品コード2']==hinban]['金額'].sum()
+        hinban_sum_now_list.append(hinabn_sum_now)
+        hinabn_sum_last_list.append(hinabn_sum_last)
+        diff_culc = hinabn_sum_now - hinabn_sum_last
+        diff.append(diff_culc)
+        ratio_culc = f'{(hinabn_sum_now / hinabn_sum_last)*100:0.1f} %'
+        ratio.append(ratio_culc)
+
+    df_result = pd.DataFrame(list(zip(hinban_sum_now_list, hinabn_sum_last_list, ratio, diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])
+    st.dataframe(df_result)
 
     
 #累計　シリーズベース
@@ -625,216 +712,22 @@ def original_category_series_earnings():
     st.caption('今期売上')
     st.table(df_result)
 
-#品番別数量（全体）       
-def hinban_count():
-    # *** selectbox シリーズ***
-    series = df_now['シリーズ名'].unique()
-    option_series = st.selectbox(
-        'series:',
-        series,   
-    )
-    df_now_series = df_now[df_now['シリーズ名']==option_series]
-    df_last_series = df_last[df_last['シリーズ名']==option_series]
-    
-    hinban_list = df_now_series['商品コード2'].unique()
-    index = []
-    hinban_count_now_list = []
-    hinabn_count_last_list = []
-    diff = []
-    ratio = []
-
-    for hinban in hinban_list:
-        index.append(hinban)
-        hinabn_count_now = df_now_series[df_now_series['商品コード2']==hinban]['数量'].sum()
-        hinabn_count_last = df_last_series[df_last_series['商品コード2']==hinban]['数量'].sum()
-        hinban_count_now_list.append(hinabn_count_now)
-        hinabn_count_last_list.append(hinabn_count_last)
-        diff_culc = hinabn_count_now - hinabn_count_last
-        diff.append(diff_culc)
-        ratio_culc = f'{(hinabn_count_now / hinabn_count_last)*100:0.1f} %'
-        ratio.append(ratio_culc)
-
-    df_result = pd.DataFrame(list(zip(hinban_count_now_list, hinabn_count_last_list, ratio, diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])
-    st.dataframe(df_result)
-
-# 品番別売上（全体）
-def hinban_sum():
-    # *** selectbox シリーズ***
-    series = df_now['シリーズ名'].unique()
-    option_series = st.selectbox(
-        'series:',
-        series,   
-    )
-    df_now_series = df_now[df_now['シリーズ名']==option_series]
-    df_last_series = df_last[df_last['シリーズ名']==option_series]
-    
-    hinban_list = df_now_series['商品コード2'].unique()
-    index = []
-    hinban_sum_now_list = []
-    hinabn_sum_last_list = []
-    diff = []
-    ratio = []
-
-    for hinban in hinban_list:
-        index.append(hinban)
-        hinabn_sum_now = df_now_series[df_now_series['商品コード2']==hinban]['金額'].sum()
-        hinabn_sum_last = df_last_series[df_last_series['商品コード2']==hinban]['金額'].sum()
-        hinban_sum_now_list.append(hinabn_sum_now)
-        hinabn_sum_last_list.append(hinabn_sum_last)
-        diff_culc = hinabn_sum_now - hinabn_sum_last
-        diff.append(diff_culc)
-        ratio_culc = f'{(hinabn_sum_now / hinabn_sum_last)*100:0.1f} %'
-        ratio.append(ratio_culc)
-
-    df_result = pd.DataFrame(list(zip(hinban_sum_now_list, hinabn_sum_last_list, ratio, diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])
-    st.dataframe(df_result)
-
-def category_fabric():
-    df_now2 = df_now.rename(columns={'商　品　名': '商品名'})
-    df_last2 = df_last.rename(columns={'商　品　名': '商品名'})
-     # *** selectbox***
-    category = ['ダイニングチェア', 'リビングチェア']
-    option_category = st.selectbox(
-        'category:',
-        category,   
-    ) 
-    categorybase_now = df_now2[df_now2['商品分類名2']==option_category]
-    categorybase_last = df_last2[df_last2['商品分類名2']==option_category]
-    # categorybase_now = categorybase_now[categorybase_now['張地'] != ''] #空欄を抜いたdf作成
-    # categorybase_last = categorybase_last[categorybase_last['張地'] != '']
-    
-    fab_name_now = []
-    for name in categorybase_now['商品名']:
-
-        name_s = name.split(' ')
-        if name_s[2]=='TIFﾗﾝｸ布':
-            fab = name_s[-1]
-        else:
-            fab = name_s[2]
-        fab_name_now.append(fab)    
-    
-    categorybase_now['fabric'] = fab_name_now
-
-    fab_name_last = []
-    for name in categorybase_last['商品名']:
-
-        name_s = name.split(' ')
-        if name_s[2]=='TIFﾗﾝｸ布':
-            fab = name_s[-1]
-        else:
-            fab = name_s[2]
-        fab_name_last.append(fab)    
-    
-    categorybase_last['fabric'] = fab_name_last
-
-    col1, col2 = st.columns(2)
-    with col1:
-        # ***張地別売り上げ ***
-        fabric_now = categorybase_now.groupby('fabric')['金額'].sum().sort_values(ascending=False).head(12) #降順
-        #fabric2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
-        st.markdown('###### 張地別売上(今期)')
-
-        # グラフ
-        fig_fabric_now = go.Figure()
-        fig_fabric_now.add_trace(
-            go.Bar(
-                x=fabric_now.index,
-                y=fabric_now,
-                )
-        )
-        fig_fabric_now.update_layout(
-            height=500,
-            width=2000,
-        )        
-        
-        st.plotly_chart(fig_fabric_now, use_container_width=True)
-
-    with col2:
-        # ***張地別売り上げ ***
-        fabric_last = categorybase_last.groupby('fabric')['金額'].sum().sort_values(ascending=False).head(12) #降順
-        #fabric2 = fabric_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
-        st.markdown('###### 張地別売上(前期)')
-
-        # グラフ
-        fig_fabric_last = go.Figure()
-        fig_fabric_last.add_trace(
-            go.Bar(
-                x=fabric_last.index,
-                y=fabric_last,
-                )
-        )
-        fig_fabric_last.update_layout(
-            height=500,
-            width=2000,
-        )        
-        
-        st.plotly_chart(fig_fabric_last, use_container_width=True)    
-
-    with col1:
-        # グラフ　張地別売り上げ
-        st.markdown('張地別売上構成比(今期)')
-        fig_fabric_now2 = go.Figure(
-            data=[
-                go.Pie(
-                    labels=fabric_now.index,
-                    values=fabric_now
-                    )])
-        fig_fabric_now2.update_layout(
-            legend=dict(
-                x=-1, #x座標　グラフの左下(0, 0) グラフの右上(1, 1)
-                y=0.99, #y座標
-                xanchor='left', #x座標が凡例のどの位置を指すか
-                yanchor='top', #y座標が凡例のどの位置を指すか
-                ),
-            height=290,
-            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
-            )
-        fig_fabric_now2.update_traces(textposition='inside', textinfo='label+percent') 
-        #inside グラフ上にテキスト表示
-        st.plotly_chart(fig_fabric_now2, use_container_width=True) 
-        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-
-    with col2:
-        # グラフ　張地別売り上げ
-        st.markdown('張地別売上構成比(前期)')
-        fig_fabric_last2 = go.Figure(
-            data=[
-                go.Pie(
-                    labels=fabric_last.index,
-                    values=fabric_last
-                    )])
-        fig_fabric_last2.update_layout(
-            legend=dict(
-                x=-1, #x座標　グラフの左下(0, 0) グラフの右上(1, 1)
-                y=0.99, #y座標
-                xanchor='left', #x座標が凡例のどの位置を指すか
-                yanchor='top', #y座標が凡例のどの位置を指すか
-                ),
-            height=290,
-            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
-            )
-        fig_fabric_last2.update_traces(textposition='inside', textinfo='label+percent') 
-        #inside グラフ上にテキスト表示
-        st.plotly_chart(fig_fabric_last2, use_container_width=True) 
-        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅    
-
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        'オリジナル比率（全体）●': original_ratio,
-        'オリジナル比率（ダイニング）●': original_ratio_d,
-        'オリジナル比率（リビング）●': original_ratio_l,
-        'オリジナル売上 シリーズ/LD別●': original_sum_ld,
-        '回転数/商品分類別': category_hinban_cnt,
+        'オリ比率（全体）●': original_ratio,
+        'オリ比率（ダイニング）●': original_ratio_d,
+        'オリ比率（リビング）●': original_ratio_l,
+        'オリ売上 シリーズ/LD別●': original_sum_ld,
+        '回転数/商品分類別/品番別': category_hinban_cnt,
+        '回転数/シリーズ別/品番別●': series_hinban_cnt,
         '回転数/品番別/店舗別':category_hinban_cust_cnt,
+        '売上/シリーズ別/品番別●': hinban_sum,
         'オリ売上累計 店別/シリーズ/分類●': original_series_category_earnings_sum,
         'オリ売上累計 店別/分類/シリーズ●':original_category_seriesearnings_sum,
         'オリ売上月毎 店別/シリーズ/分類●': original_series_category_earnings,
         'オリ売上月毎 店別/分類/シリーズ●': original_category_series_earnings,
-        '品番別数量 全体●': hinban_count,
-        '品番別金額 全体●': hinban_sum,
-        '張地別売上': category_fabric,
         
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
