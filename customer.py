@@ -879,30 +879,6 @@ def series_col_fab():
     categorybase_cust_now = categorybase_now[categorybase_now['得意先名']== option_customer]
     categorybase_cust_last = categorybase_last[categorybase_last['得意先名']== option_customer]
 
-    # fab_name_now = []
-    # for name in categorybase_cust_now['商　品　名']:
-
-    #     name_s = name.split(' ')
-    #     if name_s[2]=='TIFﾗﾝｸ布':
-    #         fab = name_s[-1]
-    #     else:
-    #         fab = name_s[2]
-    #     fab_name_now.append(fab)    
-    
-    # categorybase_cust_now['fabric'] = fab_name_now
-
-    # fab_name_last = []
-    # for name in categorybase_cust_last['商　品　名']:
-
-    #     name_s = name.split(' ')
-    #     if name_s[2]=='TIFﾗﾝｸ布':
-    #         fab = name_s[-1]
-    #     else:
-    #         fab = name_s[2]
-    #     fab_name_last.append(fab)    
-    
-    # categorybase_cust_last['fabric'] = fab_name_last
-
     col1, col2 = st.columns(2)
 
     with col1:

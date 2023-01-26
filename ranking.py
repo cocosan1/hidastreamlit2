@@ -31,6 +31,7 @@ df['商品コード2'] = df['商品コード'].map(lambda x: x.split()[0]) #品�
 df['張地'] = df['商　品　名'].map(lambda x: x.split()[2] if len(x.split()) >= 4 else '')
 df['HTSサイズ'] = df['張地'].map(lambda x: x.split('x')[0]) #HTSサイズ
 df['HTS形状'] = df['商　品　名'].map(lambda x: x.split()[1] if len(x.split()) >= 4 else '') #HTS天板形状
+df['HTS形状2'] = df['HTS形状'].map(lambda x: x.split('形')[0] if len(x.split('形')) >= 2 else '') #面型抜き
 
 
 df2 = df[df['商品分類名2'].isin(['ダイニングチェア', 'リビングチェア'])]
@@ -82,34 +83,41 @@ def ranking_item():
     )
     df_cate = df2[df2['商品分類名2']==option_category]
 
-    # *** selectbox シリーズ名***
-    series_list = df_cate['シリーズ名'].unique()
-    option_series = st.selectbox(
-        'series:',
-        series_list,   
-    )
-    df_cate_seri = df_cate[df_cate['シリーズ名']==option_series]
+    
     
     with st.form('入力フォーム'):
-        hinban_list = df_cate_seri['商品コード2'].unique()
-        option_hinban = st.selectbox(
-            'code:',
-            hinban_list,
+        # *** selectbox シリーズ名***
+        series_list = df_cate['シリーズ名'].unique()
+        option_series = st.selectbox(
+            'series:',
+            series_list,   
         )
-        df_cate_seri_code = df_cate_seri[df_cate_seri['商品コード2']==option_hinban]
+        df_cate_seri = df_cate[df_cate['シリーズ名']==option_series]
+
+        # hinban_list = df_cate_seri['商品コード2'].unique()
+        # option_hinban = st.selectbox(
+        #     'code:',
+        #     hinban_list,
+        # )
+        # df_cate_seri_code = df_cate_seri[df_cate_seri['商品コード2']==option_hinban]
 
         # *** selectbox 塗色***
-        color_list = df_cate_seri_code['塗色CD'].unique()
+        color_list = df_cate_seri['塗色CD'].unique()
         option_color = st.selectbox(
             'color:',
             color_list,   
         )
         st.form_submit_button('submit')
         
-    df_cate_seri_code_col = df_cate_seri_code[df_cate_seri_code['塗色CD']==option_color]
-    df_cate_seri_code_col = df_cate_seri_code_col[df_cate_seri_code_col['張地'] != ''] #空欄を抜いたdf作成
+    df_cate_seri_col = df_cate_seri[df_cate_seri['塗色CD']==option_color]
+    df_cate_seri_col = df_cate_seri_col[df_cate_seri_col['張地'] != ''] #空欄を抜いたdf作成
 
-    df_result= df_cate_seri_code_col.groupby(['張地'])['数量'].sum().sort_values(ascending=False).head(12)
+    df_result= df_cate_seri_col.groupby(['張地'])['数量'].sum().sort_values(ascending=False).head(12)
+
+    #脚カットの場合ファブリックの位置がずれる為、行削除
+    for index in df_result.index:
+        if index in ['ｾﾐｱｰﾑﾁｪｱ', 'ｱｰﾑﾁｪｱ', 'ﾁｪｱ']:
+            df_result.drop(index=index, inplace=True)
 
     # グラフ　張布売り上げ
     st.write('ランキング 張地別')
@@ -130,30 +138,16 @@ def ranking_item():
 
 def profit():
     hinban = st.text_input('品番を入力', 'SG261A')
+    col1, col2 = st.columns(2)
+    with col1:
+        kingaku_sum = df[df['商品コード2']==hinban]['金額'].sum()
+        genka_sum = df[df['商品コード2']==hinban]['原価金額'].sum()
+        st.metric('粗利率', value=(f'{(kingaku_sum-genka_sum)/kingaku_sum*100:0.1f} %'))
     
-    # cate_list = df['商品分類名2'].unique()
-    # option_category = st.selectbox(
-    #     '商品分類:',
-    #     cate_list,   
-    # )
-    # df_cate = df[df['商品分類名2']==option_category]
+    with col2:
+        profit = kingaku_sum-genka_sum
+        st.metric('粗利額', value='{:,}'.format(profit))
 
-    # seri_list = df_cate['シリーズ名'].unique()
-    # option_series = st.selectbox(
-    #     'シリーズ名:',
-    #     seri_list,   
-    # )
-    # df_cate_seri = df_cate[df_cate['シリーズ名']==option_series]
-
-    # hinban_list = df_cate_seri['商品コード2'].unique()
-    # option_hinban = st.selectbox(
-    #     '品番:',
-    #     hinban_list, 
-    # )
-    kingaku_mean = df[df['商品コード2']==hinban]['金額'].mean()
-    genka_mean = df[df['商品コード2']==hinban]['原価金額'].mean()
-    st.metric('粗利率', value=(f'{(kingaku_mean-genka_mean)/kingaku_mean*100:0.1f} %'))
-    # st.write(f'{(kingaku_mean-genka_mean)/kingaku_mean*100:0.1f} %')
 
 def hts_width():
     st.markdown('###### 侭サイズ　一覧')
@@ -231,16 +225,96 @@ def hts_shape():
         )        
         st.plotly_chart(fig_shape, use_container_width=True)
 
+def hts_shapesize():
+    st.markdown('###### 天板形状＆サイズ　一覧')
+    df_hts = df[df['商品コード2']=='HTS2']
+    df_hts['形状サイズ'] = df_hts['HTS形状'] + df_hts['HTSサイズ']
+    shapesize_list = df_hts['形状サイズ'].unique()
+
+    cnt_list = []
+    index_list = []
+
+    for shapesize in shapesize_list:
+        index_list.append(shapesize)
+        cnt = df_hts[df_hts['形状サイズ']==shapesize]['数量'].sum()
+        cnt_list.append(cnt)
+
+    df_shapesize = pd.DataFrame(index=index_list)
+    df_shapesize['数量'] = cnt_list
+    df_shapesize = df_shapesize.sort_values(by='数量', ascending=False)
+    df_shapesize2 = df_shapesize.head(12)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.table(df_shapesize2)
+
+    with col2:    
+    # グラフ　シリーズ別売り上げ
+        fig_shape = go.Figure()
+        fig_shape.add_trace(
+            go.Bar(
+                x=df_shapesize2.index,
+                y=df_shapesize2['数量'],
+                )
+        )
+        fig_shape.update_layout(
+            height=500,
+            width=2000,
+        )        
+        st.plotly_chart(fig_shape, use_container_width=True)
+
+
+def hts_shapesize_nonedge():
+    st.markdown('###### 天板形状＆サイズ　一覧 ※面形状抜き')
+    df_hts = df[df['商品コード2']=='HTS2']
+    df_hts['形状2サイズ'] = df_hts['HTS形状2'] + df_hts['HTSサイズ']
+    shapesize_list = df_hts['形状2サイズ'].unique()
+
+    cnt_list = []
+    index_list = []
+
+    for shapesize in shapesize_list:
+        index_list.append(shapesize)
+        cnt = df_hts[df_hts['形状2サイズ']==shapesize]['数量'].sum()
+        cnt_list.append(cnt)
+
+    df_shapesize = pd.DataFrame(index=index_list)
+    df_shapesize['数量'] = cnt_list
+    df_shapesize = df_shapesize.sort_values(by='数量', ascending=False)
+    df_shapesize2 = df_shapesize.head(12)
+
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.table(df_shapesize2)
+
+    with col2:    
+    # グラフ　シリーズ別売り上げ
+        fig_shape = go.Figure()
+        fig_shape.add_trace(
+            go.Bar(
+                x=df_shapesize2.index,
+                y=df_shapesize2['数量'],
+                )
+        )
+        fig_shape.update_layout(
+            height=500,
+            width=2000,
+        )        
+        st.plotly_chart(fig_shape, use_container_width=True)         
 
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        'ランキング シリーズ': ranking_series,
-        'ランキング アイテム': ranking_item,
-        '品番別粗利率': profit,
+        '張地ランキング/シリーズ': ranking_series,
+        '張地ランキング/シリーズ/塗色': ranking_item,
+        '品番別粗利率/粗利額': profit,
         '侭　サイズランキング': hts_width,
-        '侭　天板形状ランキング': hts_shape,
+        '侭　天板面形状ランキング': hts_shape,
+        '侭　天板面形状サイズランキング': hts_shapesize,
+        '侭　天板形状サイズランキング': hts_shapesize_nonedge
           
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
