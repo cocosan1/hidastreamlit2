@@ -211,6 +211,14 @@ def living_dining_comparison_ld():
 def hokkaido_fushi_kokusanzai():
     # *** 北海道比率　節材比率　国産材比率 ***
     col1, col2, col3 = st.columns(3)
+
+    #分類の詳細
+    with st.expander('分類の詳細'):
+        st.write('【節あり】森のことば/LEVITA (ﾚｳﾞｨﾀ)/森の記憶/とき葉/森のことばIBUKI/森のことば ウォルナット')
+        st.write('【国産材1】北海道民芸家具/HIDA/Northern Forest/北海道HMその他/杉座/ｿﾌｨｵ SUGI/風のうた\
+            Kinoe/SUWARI/KURINOKI')
+        st.write('【国産材2】SG261M/SG261K/SG261C/SG261AM/SG261AK/SG261AC/KD201M/KD201K/KD201C\
+                 KD201AM/KD201AK/KD201AC')
     
     with col1:
         hokkaido_now = df_now[df_now['出荷倉庫']==510]['金額'].sum()
@@ -227,7 +235,7 @@ def hokkaido_fushi_kokusanzai():
         fushi_diff = f'{(fushi_now/df_now_total*100) - (fushi_last/df_last_total*100): 0.1f} %'
         st.metric('節材比率', value=f'{fushi_now/df_now_total*100: 0.1f} %', delta=fushi_diff) #小数点以下1ケタ
         st.caption(f'前年 {fushi_last/df_last_total*100: 0.1f} %')
-        st.caption('森のことば/LEVITA (ﾚｳﾞｨﾀ)/森の記憶/とき葉/森のことばIBUKI/森のことば ウォルナット')
+
     with col3:
         kokusanzai_now1 = df_now[df_now['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
         '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe', 'SUWARI', 'KURINOKI'])]['金額'].sum() #SHSカバ拾えていない
@@ -246,12 +254,6 @@ def hokkaido_fushi_kokusanzai():
         kokusanzai_diff = f'{(kokusanzai_now_t/df_now_total*100) - (kokusanzai_last_t/df_last_total*100): 0.1f} %'
         st.metric('国産材比率', value=f'{kokusanzai_now_t/df_now_total*100: 0.1f} %', delta=kokusanzai_diff) #小数点以下1ケタ
         st.caption(f'前年 {kokusanzai_last_t/df_last_total*100: 0.1f} %')
-        st.caption('北海道民芸家具/HIDA/Northern Forest/北海道HMその他/杉座/\
-            ｿﾌｨｵ SUGI/風のうた/Kinoe/SUWARI/KURINOKI/\
-            HJ/SG261M/SG261(K/C/M)/SG261A(K/C/M)/\
-            KD201(K/C/M)/KD201A(K/C/M)')
-        # st.caption('ｿﾌｨｵ SUGI/風のうた/Kinoe/SUWARI/KURINOKI/HJ/SG261M/')
-        # st.caption('SG261(K/C/M)/SG261A(K/C/M)/KD201(K/C/M)/KD201A(K/C/M)')
 
 def profit_aroma():
     col1, col2, col3 = st.columns(3)

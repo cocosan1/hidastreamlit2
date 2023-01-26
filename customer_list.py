@@ -16,7 +16,7 @@ uploaded_file_now = st.sidebar.file_uploader('今期', type='xlsx', key='now')
 df_now = DataFrame()
 if uploaded_file_now:
     df_now = pd.read_excel(
-    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
+    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 43, 50, 51]) #index　ナンバー不要　index_col=0
 else:
     st.info('今期のファイルを選択してください。')
 
@@ -26,14 +26,16 @@ uploaded_file_last = st.sidebar.file_uploader('前期', type='xlsx', key='last')
 df_last = DataFrame()
 if uploaded_file_last:
     df_last = pd.read_excel(
-    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52])
+    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 43, 50, 51])
 else:
     st.info('前期のファイルを選択してください。')
     st.stop()
 
-# *** 出荷月、受注月列の追加***
+# *** 出荷月、受注月、商品コード列の追加***
 df_now['出荷月'] = df_now['出荷日'].dt.month
 df_now['受注月'] = df_now['受注日'].dt.month
+df_now['商品コード2'] = df_now['商　品　名'].map(lambda x: x.split()[0]) #品番
+df_now['商品コード3'] = df_now['商　品　名'].map(lambda x: str(x)[0:2]) #頭品番
 df_last['出荷月'] = df_last['出荷日'].dt.month
 df_last['受注月'] = df_last['受注日'].dt.month
 
@@ -176,33 +178,54 @@ def hokkaido_fiushi_kokusan_comp(): #作成中
         hokkaido_comp_culc = f'{now_cust_sum_h/df_now_cust_sum*100:0.1f} %'
         hokkaido_comp.append(hokkaido_comp_culc)
 
+        #節あり材
         now_cust_sum_fushi = df_now_cust[df_now_cust['シリーズ名'].isin(['森のことば', 'LEVITA (ﾚｳﾞｨﾀ)', '森の記憶', 'とき葉', 
         '森のことばIBUKI', '森のことば ウォルナット'])]['金額'].sum()
         fushi.append('{:,}'.format(now_cust_sum_fushi))
         fushi_comp_culc = f'{now_cust_sum_fushi/df_now_cust_sum*100:0.1f} %'
         fushi_comp.append(fushi_comp_culc)
 
-        now_cust_sum_kokusan = df_now_cust[df_now_cust['シリーズ名'].isin(['北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', 
-        '杉座', 'ｿﾌｨｵ SUGI', '風のうた', 'Kinoe'])]['金額'].sum()
-        kokusan.append('{:,}'.format(now_cust_sum_kokusan))
-        kokusan_comp_culc = f'{now_cust_sum_kokusan/df_now_cust_sum*100:0.1f} %'
+        #国産材
+        kokusanzai_now1 = df_now_cust[df_now_cust['シリーズ名'].isin([\
+            '北海道民芸家具', 'HIDA', 'Northern Forest', '北海道HMその他', '杉座', 'ｿﾌｨｵ SUGI', '風のうた',\
+            'Kinoe', 'SUWARI', 'KURINOKI'\
+                ])]['金額'].sum() #SHSカバ拾えていない
+
+        kokusanzai_now2 = df_now_cust[df_now_cust['商品コード2'].isin([\
+            'SG261M', 'SG261K', 'SG261C', 'SG261AM', 'SG261AK', 'SG261AC', 'KD201M', 'KD201K', 'KD201C',\
+                 'KD201AM', 'KD201AK', 'KD201AC'\
+                    ])]['金額'].sum()
+       
+        
+        kokusanzai_now3 = df_now_cust[df_now_cust['商品コード3']=='HJ']['金額'].sum()
+
+        kokusanzai_now_t = kokusanzai_now1 + kokusanzai_now2 + kokusanzai_now3
+
+        kokusan.append('{:,}'.format(kokusanzai_now_t))
+        kokusan_comp_culc = f'{kokusanzai_now_t/df_now_cust_sum*100:0.1f} %'
         kokusan_comp.append(kokusan_comp_culc)
 
-    st.write('構成比')
+    #分類の詳細
+    with st.expander('分類の詳細'):
+        st.write('【節あり】森のことば/LEVITA (ﾚｳﾞｨﾀ)/森の記憶/とき葉/森のことばIBUKI/森のことば ウォルナット')
+        st.write('【国産材1】北海道民芸家具/HIDA/Northern Forest/北海道HMその他/杉座/ｿﾌｨｵ SUGI/風のうた\
+            Kinoe/SUWARI/KURINOKI')
+        st.write('【国産材2】SG261M/SG261K/SG261C/SG261AM/SG261AK/SG261AC/KD201M/KD201K/KD201C\
+                 KD201AM/KD201AK/KD201AC') 
+    st.write('構成比')                
     df_comp_list = pd.DataFrame(list(zip(hokkaido_comp, fushi_comp, kokusan_comp)), index=index, columns=['北海道工場', '節材', '国産材'])
     st.dataframe(df_comp_list, width=2000)
 
 def profit_aroma():
     customer_list = df_now['得意先名'].unique()
 
-    index = []
-    profit = [] #粗利
-    profit_ratio = [] #粗利率
-
-    aroma = [] #アロマ売り上げ
+    index_list = []
+    profit_list = [] #粗利
+    profit_ratio_list = [] #粗利率
+    aroma_list = [] #アロマ売り上げ
 
     for customer in customer_list:
-        index.append(customer)
+        index_list.append(customer)
 
         df_now_cust = df_now[df_now['得意先名']==customer]
 
@@ -210,12 +233,16 @@ def profit_aroma():
 
         now_cust_sum_profit = df_now_cust['原価金額'].sum()
         profit_ratio_culc = f'{(df_now_cust_sum - now_cust_sum_profit)/df_now_cust_sum*100:0.1f} %'
-        profit_ratio.append(profit_ratio_culc)
+        profit_ratio_list.append(profit_ratio_culc)
 
-        now_cust_sum_aroma = df_now_cust[df_now_cust['シリーズ名'].isin(['きつつき森の研究所'])]['金額'].sum()
-        aroma.append('{:,}'.format(now_cust_sum_aroma))
+        profit_list.append(df_now_cust_sum - now_cust_sum_profit)
 
-    df_comp_list = pd.DataFrame(list(zip(profit_ratio, aroma)), index=index, columns=['粗利率', 'きつつきの森研究所'])
+        now_cust_sum_aroma = df_now_cust[\
+            df_now_cust['シリーズ名'].isin(['Essenntial Oil & Aroma Goods'])]['金額'].sum()
+        aroma_list.append('{:,}'.format(now_cust_sum_aroma))
+
+    df_comp_list = pd.DataFrame(list(zip(profit_ratio_list, profit_list, aroma_list)),\
+         index=index_list, columns=['粗利率', '粗利額','アロマ'])
     st.dataframe(df_comp_list)
             
 
