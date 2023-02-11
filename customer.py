@@ -156,8 +156,9 @@ def mean_earning_month():
     col1, col2 = st.columns(2)
 
     with col1:
+        diff = int(df_mean_earninngs_month['今期'].mean()) - int(df_mean_earninngs_month['前期'].mean())
         st.metric('今期平均', value='{:,}'.format(int(df_mean_earninngs_month['今期'].mean())), \
-            delta='{:,}'.format(int(df_mean_earninngs_month['対前年差'].mean())))
+            delta='{:,}'.format(diff))
 
     with col2:
         st.metric('前期平均', value='{:,}'.format(int(df_mean_earninngs_month['前期'].mean()))) 
