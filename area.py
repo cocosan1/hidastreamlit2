@@ -117,7 +117,7 @@ def sales_month():
     for col in df_results.columns:
         fig.add_trace(
             go.Scatter(
-                x=['10', '11', '12', '1', '2', '3', '4', '5', '6', '7', '8', '9'], #strにしないと順番が崩れる
+                x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
                 y=df_results[col],
                 mode = 'lines+markers+text', #値表示
                 text=round(df_results[col]/10000),
