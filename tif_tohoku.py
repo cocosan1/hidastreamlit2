@@ -83,6 +83,8 @@ def earnings_comparison():
         go.Bar(
             x=df_earnings_comparison.index,
             y=df_earnings_comparison['今期'],
+            text=round(df_earnings_comparison['今期']/10000),
+            textposition="outside", 
             name='今期')
     )
     #前期のグラフの追加
@@ -90,14 +92,26 @@ def earnings_comparison():
         go.Bar(
             x=df_earnings_comparison.index,
             y=df_earnings_comparison['前期'],
+            text=round(df_earnings_comparison['今期']/10000),
+            textposition="outside", 
             name='前期'
             )
     )
+
     #レイアウト設定     
     fig.update_layout(
         title='売上一覧（累計）',
-        showlegend=True #凡例表示
-    )
+        showlegend=True, #凡例表示
+        )
+
+    fig.add_annotation(
+        text=str(df_earnings_comparison['対前年比']),
+        font_color='skyblue',
+        font_size=10,
+        arrowcolor='skyblue',
+        x=df_earnings_comparison.index,
+        y=df_earnings_comparison['今期']
+    )    
     #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
     st.plotly_chart(fig, use_container_width=True) 
 
@@ -153,6 +167,8 @@ def earnings_comparison_month():
         go.Bar(
             x=df_earnings_comparison.index,
             y=df_earnings_comparison['今期'],
+            text=round(df_earnings_comparison['今期']/10000),
+            textposition="outside", 
             name='今期')
     )
     #前期のグラフの追加
@@ -160,6 +176,8 @@ def earnings_comparison_month():
         go.Bar(
             x=df_earnings_comparison.index,
             y=df_earnings_comparison['前期'],
+            text=round(df_earnings_comparison['前期']/10000),
+            textposition="outside", 
             name='前期'
             )
     )
@@ -227,6 +245,8 @@ def ld_earnings_comp():
         go.Bar(
             x=df_sum.index,
             y=df_sum['Living'],
+            text=round(df_sum['Living']/10000),
+            textposition="outside", 
             name='Living')
     )
     #前期のグラフの追加
@@ -234,6 +254,8 @@ def ld_earnings_comp():
         go.Bar(
             x=df_sum.index,
             y=df_sum['Dining'],
+            text=round(df_sum['Dining']/10000),
+            textposition="outside", 
             name='Dining'
             )
     )
@@ -271,6 +293,8 @@ def ld_comp():
         go.Bar(
             x=df_results.index,
             y=df_results['Living'],
+            text=round(df_results['Living']/10000),
+            textposition="outside", 
             name='Living')
     )
     #前期のグラフの追加
@@ -278,6 +302,8 @@ def ld_comp():
         go.Bar(
             x=df_results.index,
             y=df_results['Dining'],
+            text=round(df_results['Dining']/10000),
+            textposition="outside", 
             name='Dining'
             )
     )
@@ -321,6 +347,8 @@ def series_comp():
         go.Bar(
             x=df_results.index,
             y=df_results['Living'],
+            text=round(df_results['Living']/10000),
+            textposition="outside", 
             name='Living')
     )
     #前期のグラフの追加
@@ -328,6 +356,8 @@ def series_comp():
         go.Bar(
             x=df_results.index,
             y=df_results['Dining'],
+            text=round(df_results['Dining']/10000),
+            textposition="outside", 
             name='Dining'
             )
     )
