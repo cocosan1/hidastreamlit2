@@ -59,15 +59,43 @@ def earnings_comparison_year():
     
     total_comparison = f'{df_now_total / df_last_total * 100: 0.1f} %'
     total_diff = '{:,}'.format(df_now_total - df_last_total)
-    
-    col1, col2, col3 = st.columns(3)
 
+    col1, col2 = st.columns(2)
     with col1:
-        st.metric('今期売上', value= '{:,}'.format(df_now_total), delta=total_diff) # ★delta使いたい
-    with col2:
-        st.metric('前期売上', value= '{:,}'.format(df_last_total))
-    with col3:
         st.metric('対前年比', value= total_comparison)
+    with col2:
+        st.metric('対前年差', value= total_diff)
+
+
+    #可視化
+    #グラフを描くときの土台となるオブジェクト
+    fig = go.Figure()
+    #今期のグラフの追加
+    fig.add_trace(
+        go.Bar(
+            x=['今期'],
+            y=[df_now_total],
+            text='{:,}'.format(df_now_total),
+            textposition="outside", 
+            name='今期')
+    )
+    #前期のグラフの追加
+    fig.add_trace(
+        go.Bar(
+            x=['前期'],
+            y=[df_last_total],
+            text='{:,}'.format(df_last_total),
+            textposition="outside", 
+            name='前期'
+            )
+    )
+    #レイアウト設定     
+    fig.update_layout(
+        title='シリーズ別売上（累計）',
+        showlegend=False #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig, use_container_width=True)     
 
 def earnings_comparison_month():
     month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -102,36 +130,191 @@ def earnings_comparison_month():
     df_month['累計(今期売上)'] = df_month['累計(今期売上)'].astype(int).apply('{:,}'.format)
     df_month['累計(対前期差)'] = df_month['累計(対前期差)'].astype(int).apply('{:,}'.format)
 
-    st.markdown('###### 月別売上')
-    st.table(df_month)
+    #グラフ用にintデータ用意
+    df_konki = df_month['今期売上'].apply(lambda x: x.replace(',', '')).astype(int)
+    df_zenki = df_month['前期売上'].apply(lambda x: x.replace(',', '')).astype(int)
+    df_rkonki = df_month['累計(今期売上)'].apply(lambda x: x.replace(',', '')).astype(int)
+    df_rzenki = df_month['累計(前期売上)'].apply(lambda x: x.replace(',', '')).astype(int)
 
+    with st.expander('詳細', expanded=False):
+        st.markdown('###### 月別売上')
+        st.table(df_month)
+
+    #可視化
+    #***********月別*************************************
+    #グラフを描くときの土台となるオブジェクト
+    fig = go.Figure()
+    #今期のグラフの追加
+
+    fig.add_trace(
+        go.Scatter(
+            x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+            y=df_konki,
+            mode = 'lines+markers+text', #値表示
+            text=round(df_konki/10000),
+            textposition="top center", 
+            name='今期')
+    )
+    fig.add_trace(
+        go.Scatter(
+            x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+            y=df_zenki,
+            mode = 'lines+markers+text', #値表示
+            text=round(df_zenki/10000),
+            textposition="top center", 
+            name='前期')
+    )
+    
+
+    #レイアウト設定     
+    fig.update_layout(
+        title='月別売上',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig, use_container_width=True) 
+
+    #***********累計*************************************
+    #グラフを描くときの土台となるオブジェクト
+    fig2 = go.Figure()
+    #今期のグラフの追加
+
+    fig2.add_trace(
+        go.Scatter(
+            x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+            y=df_rkonki,
+            mode = 'lines+markers+text', #値表示
+            text=round(df_rkonki/10000),
+            textposition="top center", 
+            name='今期')
+    )
+    fig2.add_trace(
+        go.Scatter(
+            x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+            y=df_rzenki,
+            mode = 'lines+markers+text', #値表示
+            text=round(df_rzenki/10000),
+            textposition="top center", 
+            name='前期')
+    )
+    
+
+    #レイアウト設定     
+    fig2.update_layout(
+        title='月別売上(累計)',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig2, use_container_width=True) 
 
 
 def living_dining_latio():
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        living_now = df_now[df_now['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]['金額'].sum()
-        living_last = df_last[df_last['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]['金額'].sum()
-        living_diff = f'{(living_now/df_now_total*100) - (living_last/df_last_total*100): 0.1f} %'
-        st.metric('リビング比率', value=f'{living_now/df_now_total*100: 0.1f} %', delta=living_diff)
-        st.caption(f'前年 {living_last/df_last_total*100: 0.1f} %')
-        st.caption('クッション/リビングチェア/リビングテーブル')
-    with col2:
-        dining_now = df_now[df_now['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]['金額'].sum()
-        dining_last = df_last[df_last['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]['金額'].sum()
-        dining_diff = f'{(dining_now/df_now_total*100) - (dining_last/df_last_total*100): 0.1f} %'
-        st.metric('ダイニング比率', value=f'{dining_now/df_now_total*100: 0.1f} %', delta=dining_diff)
-        st.caption(f'前年 {dining_last/df_last_total*100: 0.1f} %') 
-        st.caption('ダイニングテーブル/ダイニングチェア/ベンチ')
-    with col3:
-        sonota_now = df_now[df_now['商品分類名2'].isin(['キャビネット類', 'その他テーブル', '雑品・特注品', 'その他椅子',
-         'デスク', '小物・その他'])]['金額'].sum()
-        sonota_last = df_last[df_last['商品分類名2'].isin(['キャビネット類', 'その他テーブル', '雑品・特注品', 'その他椅子',
-         'デスク', '小物・その他'])]['金額'].sum()
-        sonota_diff = f'{(sonota_now/df_now_total*100) - (sonota_last/df_last_total*100): 0.1f} %'
-        st.metric('その他比率', value=f'{sonota_now/df_now_total*100: 0.1f} %', delta=sonota_diff) 
-        st.caption(f'前年 {sonota_last/df_last_total*100: 0.1f} %') 
-        st.caption('キャビネット類/その他テーブル/雑品・特注品/その他椅子/デスク/小物・その他')
+
+    living_now = df_now[df_now['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]['金額'].sum()
+    living_last = df_last[df_last['商品分類名2'].isin(['クッション', 'リビングチェア', 'リビングテーブル'])]['金額'].sum()
+    living_diff = f'{(living_now/df_now_total*100) - (living_last/df_last_total*100): 0.1f} %'
+
+    dining_now = df_now[df_now['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]['金額'].sum()
+    dining_last = df_last[df_last['商品分類名2'].isin(['ダイニングテーブル', 'ダイニングチェア', 'ベンチ'])]['金額'].sum()
+    dining_diff = f'{(dining_now/df_now_total*100) - (dining_last/df_last_total*100): 0.1f} %'
+
+    sonota_now = df_now[df_now['商品分類名2'].isin(['キャビネット類', 'その他テーブル', '雑品・特注品', 'その他椅子',
+        'デスク', '小物・その他'])]['金額'].sum()
+    sonota_last = df_last[df_last['商品分類名2'].isin(['キャビネット類', 'その他テーブル', '雑品・特注品', 'その他椅子',
+        'デスク', '小物・その他'])]['金額'].sum()
+    sonota_diff = f'{(sonota_now/df_now_total*100) - (sonota_last/df_last_total*100): 0.1f} %'
+
+    #可視化
+    fig_now = go.Figure()
+    #***今期***
+    fig_now.add_trace(
+    go.Bar(
+        name='リビング',  # データの名称（凡例に表示）
+        x=['今期'],  # 横軸の値のリスト
+        y=[living_now/df_now_total],  # 縦軸の値のリスト
+        text=[f'リビング {living_now/df_now_total: 0.2f}' ],  # 棒に記載するテキスト
+        textposition="inside",
+        marker_color='rgba(205, 92, 92, 1)'
+    ))
+    fig_now.add_trace(
+    go.Bar(
+        name='ダイニング',  # データの名称（凡例に表示）
+        x=['今期'],  # 横軸の値のリスト
+        y=[dining_now/df_now_total],  # 縦軸の値のリスト
+        text=[f'ダイニング {dining_now/df_now_total: 0.2f}' ],  # 棒に記載するテキスト
+        textposition="inside",
+        marker_color='rgba(240, 128, 128, 1)'
+    ))
+    fig_now.add_trace(
+    go.Bar(
+        name='その他',  # データの名称（凡例に表示）
+        x=['今期'],  # 横軸の値のリスト
+        y=[sonota_now/df_now_total],  # 縦軸の値のリスト
+        text=[f'その他 {sonota_now/df_now_total: 0.2f}'],  # 棒に記載するテキスト
+        textposition="inside",
+        marker_color='rgba(255, 160, 122, 1)'
+    ))
+
+    #***前期***
+    fig_now.add_trace(
+    go.Bar(
+        name='リビング',  # データの名称（凡例に表示）
+        x=['前期'],  # 横軸の値のリスト
+        y=[living_last/df_last_total],  # 縦軸の値のリスト
+        text=[f'{living_last/df_last_total: 0.2f}' ],  # 棒に記載するテキスト
+        textposition="inside",
+        marker_color='rgba(205, 92, 92, 1)'
+    ))
+    fig_now.add_trace(
+    go.Bar(
+        name='ダイニング',  # データの名称（凡例に表示）
+        x=['前期'],  # 横軸の値のリスト
+        y=[dining_last/df_last_total],  # 縦軸の値のリスト
+        text=[f'{dining_last/df_last_total: 0.2f}' ],  # 棒に記載するテキスト
+        textposition="inside",
+        marker_color='rgba(240, 128, 128, 1)'
+    ))
+    fig_now.add_trace(
+    go.Bar(
+        name='その他',  # データの名称（凡例に表示）
+        x=['前期'],  # 横軸の値のリスト
+        y=[sonota_last/df_last_total],  # 縦軸の値のリスト
+        text=[f'{sonota_last/df_last_total: 0.2f}'],  # 棒に記載するテキスト
+        textposition="inside",
+        marker_color='rgba(255, 160, 122, 1)'
+    ))
+
+    # グラフのレイアウトを変更
+    fig_now.update_layout(
+        title="LD比率",  # タイトル
+        showlegend=False, #凡例表示
+        barmode="stack",
+
+    )
+
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig_now, use_container_width=True) 
+
+    with st.expander('詳細', expanded=False):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric('リビング', value= '{:,}'.format(living_now), delta=int(living_now - living_last))
+            #numpy intをintに変換
+            st.caption(f'前年 {living_last}')
+        with col2:
+            st.metric('ダイニング', value= '{:,}'.format(dining_now), delta=int(dining_now - dining_last))
+            #numpy intをintに変換
+            st.caption(f'前年 {dining_last}') 
+        with col3:
+            st.metric('その他', value= '{:,}'.format(sonota_now), delta=int(sonota_now - sonota_last))
+            #numpy intをintに変換
+            st.caption(f'前年 {sonota_last}')        
+        
+
+    with st.expander('分類内訳', expanded=False):
+        st.caption('リビング: クッション/リビングチェア/リビングテーブル')
+        st.caption('ダイニング: ダイニングテーブル/ダイニングチェア/ベンチ')
+        st.caption('その他: キャビネット類/その他テーブル/雑品・特注品/その他椅子/デスク/小物・その他')
 
 def living_dining_comparison_ld():
 
@@ -166,47 +349,46 @@ def living_dining_comparison_ld():
         ratio_culc = f'{now_culc/last_culc*100:0.1f} %'
         ratio.append(ratio_culc)
     df_result = pd.DataFrame(list(zip(now_result, last_result, ratio, diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])
-    st.write(df_result)
+    with st.expander('詳細', expanded=False):
+        st.table(df_result)
     
-    col1, col2 = st.columns(2)
 
-    with col1:
-        # グラフ
-        st.write(f'{option_category} 構成比(今期)')
-        fig_ld_ratio_now = go.Figure(
-            data=[
-                go.Pie(
-                    labels=df_result.index,
-                    values=df_result['今期']
-                    )])
-        fig_ld_ratio_now.update_layout(
-            showlegend=True, #凡例表示
-            height=200,
-            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
-            )
-        fig_ld_ratio_now.update_traces(textposition='inside', textinfo='label+percent') 
-        #inside グラフ上にテキスト表示
-        st.plotly_chart(fig_ld_ratio_now, use_container_width=True) 
-        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    # グラフ
+    st.write(f'{option_category} 構成比(今期)')
+    fig_now = go.Figure(
+        data=[
+            go.Pie(
+                labels=df_result.index,
+                values=df_result['今期']
+                )])
+    fig_now.update_layout(
+        showlegend=True, #凡例表示
+        height=200,
+        margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+        )
+    fig_now.update_traces(textposition='inside', textinfo='label+percent') 
+    #inside グラフ上にテキスト表示
+    st.plotly_chart(fig_now, use_container_width=True) 
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
-    with col2:
-        # グラフ
-        st.write(f'{option_category} 構成比(前期)')
-        fig_ld_ratio_last = go.Figure(
-            data=[
-                go.Pie(
-                    labels=df_result.index,
-                    values=df_result['前期']
-                    )])
-        fig_ld_ratio_last.update_layout(
-            showlegend=True, #凡例表示
-            height=200,
-            margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
-            )
-        fig_ld_ratio_last.update_traces(textposition='inside', textinfo='label+percent') 
-        #inside グラフ上にテキスト表示
-        st.plotly_chart(fig_ld_ratio_last, use_container_width=True) 
-        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+
+    # グラフ
+    st.write(f'{option_category} 構成比(前期)')
+    fig_ld_ratio_last = go.Figure(
+        data=[
+            go.Pie(
+                labels=df_result.index,
+                values=df_result['前期']
+                )])
+    fig_ld_ratio_last.update_layout(
+        showlegend=True, #凡例表示
+        height=200,
+        margin={'l': 20, 'r': 60, 't': 0, 'b': 0},
+        )
+    fig_ld_ratio_last.update_traces(textposition='inside', textinfo='label+percent') 
+    #inside グラフ上にテキスト表示
+    st.plotly_chart(fig_ld_ratio_last, use_container_width=True) 
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
 def hokkaido_fushi_kokusanzai():
     # *** 北海道比率　節材比率　国産材比率 ***
@@ -673,10 +855,31 @@ def series_col_fab():
     ) 
     categorybase_now = df_now[df_now['商品分類名2']==option_category]
     categorybase_now = categorybase_now.dropna(subset=['張地']) #['張地']に空欄がある場合行削除
+    categorybase_now['シリーズ名2'] = categorybase_now['シリーズ名'] + '/' + categorybase_now['塗色CD'] + '/' + categorybase_now['張地'] 
 
-    categorybase_now2 = categorybase_now.groupby(['シリーズ名', '塗色CD', '張地'])['金額'].sum().sort_values(ascending=False).head(20)
-    categorybase_now2 = categorybase_now2.apply('{:,}'.format)
-    st.dataframe(categorybase_now2)
+    # categorybase_now2 = categorybase_now.groupby(['シリーズ名', '塗色CD', '張地'])['数量'].sum().sort_values(ascending=False).head(20)
+    categorybase_now2 = categorybase_now.groupby('シリーズ名2')['数量'].sum().sort_values(ascending=False).head(20)
+
+    #可視化
+    #グラフを描くときの土台となるオブジェクト
+    fig = go.Figure()
+    #グラフの追加
+    fig.add_trace(
+        go.Bar(
+            x=categorybase_now2.index,
+            y=categorybase_now2,
+            text=categorybase_now2,
+            textposition="inside", 
+            name='数量')
+    )
+    
+    #レイアウト設定     
+    fig.update_layout(
+        title='売れ筋ランキング）',
+        showlegend=False #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig, use_container_width=True) 
 
 def series_col_fab2_sales():
 
