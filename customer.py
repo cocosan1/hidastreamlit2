@@ -710,9 +710,9 @@ def category_count_month():
         df_count[month] = count_now
         count_now = []
 
-    with st.expander('一覧', expanded=False):   
+    with st.expander('一覧', expanded=False): 
         st.caption('今期')
-        st.table(df_count)
+        st.write(df_count)
     
 
     #可視化
@@ -828,93 +828,54 @@ def color():
     df_now_cust = df_now_cust.dropna(subset=['塗色CD'])
     df_last_cust = df_last_cust.dropna(subset=['塗色CD'])
 
-    # st.write(df_now_cust)
 
-    # # ***塗色別売り上げ ***
-    # color_now = df_now_cust.groupby('塗色CD')['金額'].sum().sort_values(ascending=False) #降順
-    # color_last = df_last_cust.groupby('塗色CD')['金額'].sum().sort_values(ascending=False) #降順
+    with st.expander('売上グラフ', expanded=False):
+        col1, col2 = st.columns(2)
 
-    # #可視化
-    # fig_now = go.Figure()
-    # #***今期***
-    # for inx in color_now.index:
-    #     fig_now.add_trace(
-    #         go.Bar(
-    #             name=inx,  # データの名称（凡例に表示）
-    #             x=color_now.index,  # 横軸の値のリスト
-    #             y=[color_now.loc[inx]],  # 縦軸の値のリスト
-    #             text=inx,  # 棒に記載するテキスト
-    #             textposition="outside",
-    #             marker_color='indianred' #barの色
+        with col1:
+            # ***塗色別売り上げ ***
+            color_now = df_now_cust.groupby('塗色CD')['金額'].sum().sort_values(ascending=False) #降順
+            #color_now2 = color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+            st.markdown('###### 塗色別売上(今期)')
 
-    #         ))
-    #     fig_now.add_trace(
-    #         go.Bar(
-    #             name=inx,  # データの名称（凡例に表示）
-    #             x=color_last.index,  # 横軸の値のリスト
-    #             y=[color_last.loc[inx]],  # 縦軸の値のリスト
-    #             text='前年',  # 棒に記載するテキスト
-    #             textposition="outside",
-    #             marker_color='lightsalmon' #barの色
+            # グラフ
+            fig_color_now = go.Figure()
+            fig_color_now.add_trace(
+                go.Bar(
+                    x=color_now.index,
+                    y=color_now,
+                    )
+            )
+            fig_color_now.update_layout(
+                height=500,
+                width=2000,
+            )        
+            
+            st.plotly_chart(fig_color_now, use_container_width=True)
 
-    #         ))
-   
+        with col2:
+            # ***塗色別売り上げ ***
+            color_last = df_last_cust.groupby('塗色CD')['金額'].sum().sort_values(ascending=False) #降順
+            #color_last2 = color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+            st.markdown('###### 塗色別売上(前期)')
 
-    # # グラフのレイアウトを変更
-    # fig_now.update_layout(
-    #     title="塗色別売上",  # タイトル
-    #     showlegend=False, #凡例表示
+            # グラフ
+            fig_color_last = go.Figure()
+            fig_color_last.add_trace(
+                go.Bar(
+                    x=color_last.index,
+                    y=color_last,
+                    )
+            )
+            fig_color_last.update_layout(
+                height=500,
+                width=2000,
+            )        
+            
+            st.plotly_chart(fig_color_last, use_container_width=True)    
 
-    # )
-
-    # #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-    # st.plotly_chart(fig_now, use_container_width=True) 
-
-    col1, col2 = st.columns(2)
-
-    with col1:
-        # ***塗色別売り上げ ***
-        color_now = df_now_cust.groupby('塗色CD')['金額'].sum().sort_values(ascending=False) #降順
-        #color_now2 = color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
-        st.markdown('###### 塗色別売上(今期)')
-
-        # グラフ
-        fig_color_now = go.Figure()
-        fig_color_now.add_trace(
-            go.Bar(
-                x=color_now.index,
-                y=color_now,
-                )
-        )
-        fig_color_now.update_layout(
-            height=500,
-            width=2000,
-        )        
-        
-        st.plotly_chart(fig_color_now, use_container_width=True)
-
-    with col2:
-        # ***塗色別売り上げ ***
-        color_last = df_last_cust.groupby('塗色CD')['金額'].sum().sort_values(ascending=False) #降順
-        #color_last2 = color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
-        st.markdown('###### 塗色別売上(前期)')
-
-        # グラフ
-        fig_color_last = go.Figure()
-        fig_color_last.add_trace(
-            go.Bar(
-                x=color_last.index,
-                y=color_last,
-                )
-        )
-        fig_color_last.update_layout(
-            height=500,
-            width=2000,
-        )        
-        
-        st.plotly_chart(fig_color_last, use_container_width=True)    
-
-    with col1:    
+    col3, col4 = st.columns(2)
+    with col3:    
         # グラフ　塗色別売り上げ
         st.markdown('###### 塗色別売上構成比(今期)')
         fig_color_now2 = go.Figure(
@@ -933,7 +894,7 @@ def color():
         st.plotly_chart(fig_color_now2, use_container_width=True) 
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
 
-    with col2:    
+    with col4:    
         # グラフ　塗色別売り上げ
         st.markdown('###### 塗色別売上構成比(前期)')
         fig_color_last2 = go.Figure(
@@ -1175,22 +1136,25 @@ def series_col_fab():
     categorybase_cust_now = categorybase_now[categorybase_now['得意先名']== option_customer]
     categorybase_cust_last = categorybase_last[categorybase_last['得意先名']== option_customer]
 
+    # *** シリース別塗色別数量 ***
+    series_color_now = categorybase_cust_now.groupby(['シリーズ名', '塗色CD', '張地'])['数量'].sum().sort_values(ascending=False).head(20) #降順
+    series_color_now2 = series_color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+    
+    # **シリーズ別塗色別数量 ***
+    series_color_last = categorybase_cust_last.groupby(['シリーズ名', '塗色CD', '張地'])['数量'].sum().sort_values(ascending=False).head(20) #降順
+    series_color_last2 = series_color_last.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
+    
+    #数量2以上に限定
+    df_series_color_now2 = series_color_now[series_color_now >=2]
+    df_series_color_last2 = series_color_last[series_color_last >=2]
+    
     col1, col2 = st.columns(2)
-
     with col1:
-        # *** シリース別塗色別数量 ***
-        series_color_now = categorybase_cust_now.groupby(['シリーズ名', '塗色CD', '張地'])['数量'].sum().sort_values(ascending=False).head(20) #降順
-        series_color_now2 = series_color_now.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.markdown('###### 売れ筋ランキング 商品分類別(今期)')
-        st.table(series_color_now2)
-
+        st.table(df_series_color_now2)
     with col2:
-        # **シリーズ別塗色別数量 ***
-        series_color_last = categorybase_cust_last.groupby(['シリーズ名', '塗色CD', '張地'])['数量'].sum().sort_values(ascending=False).head(20) #降順
-        series_color_last2 = series_color_last.apply('{:,}'.format) #数値カンマ区切り　注意strになる　グラフ作れなくなる
         st.write('###### 売れ筋ランキング 商品分類別(前期)')
-        st.table(series_color_last2)
-
+        st.table(df_series_color_last2)
 
 def main():
     # アプリケーション名と対応する関数のマッピング
