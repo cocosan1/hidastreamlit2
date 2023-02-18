@@ -10,12 +10,52 @@ import openpyxl
 st.set_page_config(page_title='売り上げ分析（全体）')
 st.markdown('#### 売り上げ分析（全体)')
 
+@st.cache_data
+def make_data_now(file):
+    df_now = pd.read_excel(
+            file, sheet_name='受注委託移動在庫生産照会', \
+            usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51])  # index　ナンバー不要　index_col=0
+
+    # *** 出荷月、受注月列の追加***
+    df_now['出荷月'] = df_now['出荷日'].dt.month
+    df_now['受注月'] = df_now['受注日'].dt.month
+    df_now['商品コード2'] = df_now['商　品　名'].map(lambda x: x.split()[0]) #品番
+    df_now['商品コード3'] = df_now['商　品　名'].map(lambda x: str(x)[0:2]) #頭品番
+    df_now['張地'] = df_now['商　品　名'].map(
+        lambda x: x.split()[2] if len(x.split()) >= 4 else '') 
+
+    # ***INT型への変更***
+    df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_now[[\
+        '数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64') 
+
+    return df_now 
+
+@st.cache_data
+def make_data_last(file):
+    df_last = pd.read_excel(
+        file, sheet_name='受注委託移動在庫生産照会', \
+            usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 43, 50, 51])
+
+    df_last['出荷月'] = df_last['出荷日'].dt.month
+    df_last['受注月'] = df_last['受注日'].dt.month
+    df_last['商品コード2'] = df_last['商　品　名'].map(lambda x: x.split()[0])
+    df_last['商品コード3'] = df_last['商　品　名'].map(lambda x: str(x)[0:2]) #頭品番
+    df_last['張地'] = df_last['商　品　名'].map(
+        lambda x: x.split()[2] if len(x.split()) >= 4 else '')
+
+    #fillna　０で空欄を埋める
+    df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_last[[
+        '数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64') 
+
+    return df_last          
+
+
 # ***ファイルアップロード 今期***
 uploaded_file_now = st.sidebar.file_uploader('今期', type='xlsx', key='now')
 df_now = DataFrame()
 if uploaded_file_now:
-    df_now = pd.read_excel(
-        uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 50, 51])  # index　ナンバー不要　index_col=0
+    df_now = make_data_now(uploaded_file_now)
+
 else:
     st.info('今期のファイルを選択してください。')
 
@@ -24,33 +64,12 @@ else:
 uploaded_file_last = st.sidebar.file_uploader('前期', type='xlsx', key='last')
 df_last = DataFrame()
 if uploaded_file_last:
-    df_last = pd.read_excel(
-        uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[3, 6, 8, 10, 14, 15, 16, 28, 31, 42, 43, 50, 51])
+    df_last = make_data_last(uploaded_file_last)
+    
 else:
     st.info('前期のファイルを選択してください。')
     st.stop()
 
-# *** 出荷月、受注月列の追加***
-df_now['出荷月'] = df_now['出荷日'].dt.month
-df_now['受注月'] = df_now['受注日'].dt.month
-df_now['商品コード2'] = df_now['商　品　名'].map(lambda x: x.split()[0]) #品番
-df_now['商品コード3'] = df_now['商　品　名'].map(lambda x: str(x)[0:2]) #頭品番
-df_now['張地'] = df_now['商　品　名'].map(
-    lambda x: x.split()[2] if len(x.split()) >= 4 else '')
-df_last['出荷月'] = df_last['出荷日'].dt.month
-df_last['受注月'] = df_last['受注日'].dt.month
-df_last['商品コード2'] = df_last['商　品　名'].map(lambda x: x.split()[0])
-df_last['商品コード3'] = df_last['商　品　名'].map(lambda x: str(x)[0:2]) #頭品番
-df_last['張地'] = df_last['商　品　名'].map(
-    lambda x: x.split()[2] if len(x.split()) >= 4 else '')
-
-# ***INT型への変更***
-df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_now[[
-    '数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
-#fillna　０で空欄を埋める
-df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_last[[
-    '数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
-#fillna　０で空欄を埋める
 
 df_now_total = df_now['金額'].sum()
 df_last_total = df_last['金額'].sum()
