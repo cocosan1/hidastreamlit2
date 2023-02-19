@@ -12,12 +12,47 @@ from streamlit.elements import metric
 st.set_page_config(page_title='売り上げ分析（TIF 一覧）')
 st.markdown('#### 売り上げ分析（TIF 東北）')
 
+@st.cache_data
+def make_data_now(file):
+    df_now = pd.read_excel(
+        file, sheet_name='受注委託移動在庫生産照会', \
+            usecols=[1, 3, 6, 9, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
+
+    # *** 出荷月、受注月列の追加***
+    df_now['出荷月'] = df_now['出荷日'].dt.month
+    df_now['受注月'] = df_now['受注日'].dt.month 
+
+    df_now['商品コード2'] = df_now['商品コード'].map(lambda x: x.split()[0]) 
+
+    # ***INT型への変更***
+    df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = \
+        df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
+    #fillna　０で空欄を埋める
+
+    return df_now
+
+@st.cache_data
+def make_data_last(file):
+    df_last = pd.read_excel(
+        file, sheet_name='受注委託移動在庫生産照会', \
+            usecols=[1, 3, 6, 9, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) 
+
+    df_last['出荷月'] = df_last['出荷日'].dt.month
+    df_last['受注月'] = df_last['受注日'].dt.month
+    df_last['商品コード2'] = df_last['商品コード'].map(lambda x: x.split()[0])
+
+    df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = \
+        df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
+    #fillna　０で空欄を埋める 
+
+    return df_last   
+
 # ***ファイルアップロード 今期***
 uploaded_file_now = st.sidebar.file_uploader('今期', type='xlsx', key='now')
 df_now = DataFrame()
 if uploaded_file_now:
-    df_now = pd.read_excel(
-    uploaded_file_now, sheet_name='受注委託移動在庫生産照会', usecols=[1, 3, 6, 9, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52]) #index　ナンバー不要　index_col=0
+    df_now = make_data_now(uploaded_file_now)
+    
 else:
     st.info('今期のファイルを選択してください。')
 
@@ -25,25 +60,11 @@ else:
 uploaded_file_last = st.sidebar.file_uploader('前期', type='xlsx', key='last')
 df_last = DataFrame()
 if uploaded_file_last:
-    df_last = pd.read_excel(
-    uploaded_file_last, sheet_name='受注委託移動在庫生産照会', usecols=[1, 3, 6, 9, 10, 14, 15, 16, 28, 31, 42, 50, 51, 52])
+    df_last = make_data_last(uploaded_file_last)
+    
 else:
     st.info('前期のファイルを選択してください。')
     st.stop()
-
-# *** 出荷月、受注月列の追加***
-df_now['出荷月'] = df_now['出荷日'].dt.month
-df_now['受注月'] = df_now['受注日'].dt.month
-df_last['出荷月'] = df_last['出荷日'].dt.month
-df_last['受注月'] = df_last['受注日'].dt.month
-df_now['商品コード2'] = df_now['商品コード'].map(lambda x: x.split()[0])
-df_last['商品コード2'] = df_last['商品コード'].map(lambda x: x.split()[0])
-
-# ***INT型への変更***
-df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_now[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
-#fillna　０で空欄を埋める
-df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']] = df_last[['数量', '単価', '金額', '出荷倉庫', '原価金額', '出荷月', '受注月']].fillna(0).astype('int64')
-#fillna　０で空欄を埋める
 
 df_now_total = df_now['金額'].sum()
 df_last_total = df_last['金額'].sum()
@@ -73,7 +94,9 @@ def earnings_comparison():
         comparison_rate.append(earnings_rate_culc)
         comparison_diff.append(comaparison_diff_culc)
     df_earnings_comparison = pd.DataFrame(list(zip(earnings_now, earnings_last, comparison_rate, comparison_diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])    
-    st.dataframe(df_earnings_comparison)
+    
+    with st.expander('一覧', expanded=False):
+        st.dataframe(df_earnings_comparison)
 
     #可視化
     #グラフを描くときの土台となるオブジェクト
@@ -92,7 +115,7 @@ def earnings_comparison():
         go.Bar(
             x=df_earnings_comparison.index,
             y=df_earnings_comparison['前期'],
-            text=round(df_earnings_comparison['今期']/10000),
+            text=round(df_earnings_comparison['前期']/10000),
             textposition="outside", 
             name='前期'
             )
@@ -103,15 +126,7 @@ def earnings_comparison():
         title='売上一覧（累計）',
         showlegend=True, #凡例表示
         )
-
-    fig.add_annotation(
-        text=str(df_earnings_comparison['対前年比']),
-        font_color='skyblue',
-        font_size=10,
-        arrowcolor='skyblue',
-        x=df_earnings_comparison.index,
-        y=df_earnings_comparison['今期']
-    )    
+ 
     #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
     st.plotly_chart(fig, use_container_width=True) 
 
@@ -156,8 +171,10 @@ def earnings_comparison_month():
         comparison_rate.append(earnings_rate_culc)
         comparison_diff.append(comaparison_diff_culc)
     df_earnings_comparison = pd.DataFrame(list(zip(earnings_now, earnings_last, comparison_rate, comparison_diff)), index=index, columns=['今期', '前期', '対前年比', '対前年差'])
-    st.markdown("###### 得意先別")  
-    st.dataframe(df_earnings_comparison)
+    
+    with st.expander('一覧', expanded=False):
+        st.markdown("###### 得意先別")  
+        st.dataframe(df_earnings_comparison)
 
     #可視化
     #グラフを描くときの土台となるオブジェクト
@@ -188,6 +205,76 @@ def earnings_comparison_month():
     )
     #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
     st.plotly_chart(fig, use_container_width=True) 
+
+def earnings_comparison_month_suii():
+
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    columns_list = ['今期', '前期', '対前年差', '対前年比']
+
+    earnings_now = []
+    earnings_last = []
+    earnings_diff = []
+    earnings_rate = []
+
+    #グラフ用int
+    earnings_now2 = []
+    earnings_last2 = []
+
+    selected_list = st.multiselect(
+        '得意先を選択(複数可)',
+        customer_list)
+
+    #可視化
+    #グラフを描くときの土台となるオブジェクト
+    fig = go.Figure()    
+
+    for cust in selected_list:  
+        
+        df_now_cust = df_now[df_now['得意先名']==cust]
+        df_last_cust = df_last[df_last['得意先名']==cust]
+
+        for month in month_list:
+            earnings_month_now = df_now_cust[df_now_cust['受注月'].isin([month])]['金額'].sum()
+            earnings_month_last = df_last_cust[df_last_cust['受注月'].isin([month])]['金額'].sum()
+            earnings_diff_culc = earnings_month_now - earnings_month_last
+            earnings_rate_culc = f'{earnings_month_now / earnings_month_last * 100: 0.1f} %'
+
+            earnings_now.append('{:,}'.format(earnings_month_now))
+            earnings_last.append('{:,}'.format(earnings_month_last))
+            earnings_diff.append('{:,}'.format(earnings_diff_culc))
+            earnings_rate.append(earnings_rate_culc)
+
+            earnings_now2.append(earnings_month_now)
+            earnings_last2.append(earnings_month_last)
+
+            earnings_now3 = []
+            earnings_last3 = []
+            for i in range(len(earnings_now2)):
+                round_now = round(earnings_now2[i] /10000)
+                earnings_now3.append(round_now)
+                round_last = round(earnings_last2[i] /10000)
+                earnings_last3.append(round_last)
+
+
+        fig.add_trace(
+            go.Scatter(
+                x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+                y=earnings_now2,
+                mode = 'lines+markers+text', #値表示
+                text=earnings_now3,
+                textposition="top center", 
+                name=cust)
+        )    
+
+        #レイアウト設定     
+        fig.update_layout(
+            title='月別売上',
+            showlegend=True #凡例表示
+        )
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+        st.plotly_chart(fig, use_container_width=True)        
+
+    # df_earnings_month = pd.DataFrame(list(zip(earnings_now, earnings_last, earnings_diff, earnings_rate)), columns=columns_list, index=month_list)
         
 
 def ld_earnings_comp():
@@ -372,20 +459,13 @@ def series_comp():
 
 
 
-
-
-
-
-
-
-
-
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
         '売上: 累計': earnings_comparison,
         '売上: 月別': earnings_comparison_month,
+        '売上: 月別推移': earnings_comparison_month_suii,
         'LD別売上: 累計': ld_comp,
         'シリーズ別売上: 累計': series_comp
  
