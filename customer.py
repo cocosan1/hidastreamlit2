@@ -363,7 +363,7 @@ def living_dining_comparison():
             showlegend=True #凡例表示
         )
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-        st.plotly_chart(fig, use_container_width=True) 
+        st.plotly_chart(fig2, use_container_width=True) 
         
         st.caption(f'対前年差 {d_diff}')
         st.caption(f'対前年比 {d_ratio}')
