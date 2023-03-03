@@ -220,9 +220,12 @@ def earnings_comparison_month_suii():
     earnings_now2 = []
     earnings_last2 = []
 
-    selected_list = st.multiselect(
-        '得意先を選択(複数可)',
-        customer_list)
+    with st.form('選択'):
+        selected_list = st.multiselect(
+            '得意先を選択(複数可)',
+            customer_list)
+        
+        submitted = st.form_submit_button('submit')
 
     #可視化
     #グラフを描くときの土台となるオブジェクト
@@ -266,13 +269,13 @@ def earnings_comparison_month_suii():
                 name=cust)
         )    
 
-        #レイアウト設定     
-        fig.update_layout(
-            title='月別売上',
-            showlegend=True #凡例表示
-        )
-        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-        st.plotly_chart(fig, use_container_width=True)        
+    #レイアウト設定     
+    fig.update_layout(
+        title='月別売上',
+        showlegend=True #凡例表示
+    )
+    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+    st.plotly_chart(fig, use_container_width=True)        
 
     # df_earnings_month = pd.DataFrame(list(zip(earnings_now, earnings_last, earnings_diff, earnings_rate)), columns=columns_list, index=month_list)
         
