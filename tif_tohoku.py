@@ -399,7 +399,7 @@ def ld_comp():
     )
     #レイアウト設定     
     fig.update_layout(
-        title='シリーズ別売上（累計）',
+        title='LD別売上（累計）',
         showlegend=True #凡例表示
     )
     #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
