@@ -227,55 +227,60 @@ def earnings_comparison_month_suii():
         
         submitted = st.form_submit_button('submit')
 
-    #可視化
-    #グラフを描くときの土台となるオブジェクト
-    fig = go.Figure()    
+    if submitted:
+        #可視化
+        #グラフを描くときの土台となるオブジェクト
+        fig = go.Figure()    
 
-    for cust in selected_list:  
-        
-        df_now_cust = df_now[df_now['得意先名']==cust]
-        df_last_cust = df_last[df_last['得意先名']==cust]
+        for cust in selected_list:  
+            
+            df_now_cust = df_now[df_now['得意先名']==cust]
+            df_last_cust = df_last[df_last['得意先名']==cust]
 
-        for month in month_list:
-            earnings_month_now = df_now_cust[df_now_cust['受注月'].isin([month])]['金額'].sum()
-            earnings_month_last = df_last_cust[df_last_cust['受注月'].isin([month])]['金額'].sum()
-            earnings_diff_culc = earnings_month_now - earnings_month_last
-            earnings_rate_culc = f'{earnings_month_now / earnings_month_last * 100: 0.1f} %'
+            for month in month_list:
+                earnings_month_now = df_now_cust[df_now_cust['受注月'].isin([month])]['金額'].sum()
+                earnings_month_last = df_last_cust[df_last_cust['受注月'].isin([month])]['金額'].sum()
+                earnings_diff_culc = earnings_month_now - earnings_month_last
+                earnings_rate_culc = f'{earnings_month_now / earnings_month_last * 100: 0.1f} %'
 
-            earnings_now.append('{:,}'.format(earnings_month_now))
-            earnings_last.append('{:,}'.format(earnings_month_last))
-            earnings_diff.append('{:,}'.format(earnings_diff_culc))
-            earnings_rate.append(earnings_rate_culc)
+                earnings_now.append('{:,}'.format(earnings_month_now))
+                earnings_last.append('{:,}'.format(earnings_month_last))
+                earnings_diff.append('{:,}'.format(earnings_diff_culc))
+                earnings_rate.append(earnings_rate_culc)
 
-            earnings_now2.append(earnings_month_now)
-            earnings_last2.append(earnings_month_last)
+                earnings_now2.append(earnings_month_now)
+                earnings_last2.append(earnings_month_last)
 
-            earnings_now3 = []
-            earnings_last3 = []
-            for i in range(len(earnings_now2)):
-                round_now = round(earnings_now2[i] /10000)
-                earnings_now3.append(round_now)
-                round_last = round(earnings_last2[i] /10000)
-                earnings_last3.append(round_last)
+                earnings_now3 = []
+                earnings_last3 = []
+                for i in range(len(earnings_now2)):
+                    round_now = round(earnings_now2[i] /10000)
+                    earnings_now3.append(round_now)
+                    round_last = round(earnings_last2[i] /10000)
+                    earnings_last3.append(round_last)
 
 
-        fig.add_trace(
-            go.Scatter(
-                x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
-                y=earnings_now2,
-                mode = 'lines+markers+text', #値表示
-                text=earnings_now3,
-                textposition="top center", 
-                name=cust)
-        )    
+            fig.add_trace(
+                go.Scatter(
+                    x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+                    y=earnings_now2,
+                    mode = 'lines+markers+text', #値表示
+                    text=earnings_now3,
+                    textposition="top center", 
+                    name=cust)
+            ) 
 
-    #レイアウト設定     
-    fig.update_layout(
-        title='月別売上',
-        showlegend=True #凡例表示
-    )
-    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-    st.plotly_chart(fig, use_container_width=True)        
+            earnings_now2 = []
+            earnings_last2 = []
+
+
+        #レイアウト設定     
+        fig.update_layout(
+            title='月別売上',
+            showlegend=True #凡例表示
+        )
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+        st.plotly_chart(fig, use_container_width=True)        
 
     # df_earnings_month = pd.DataFrame(list(zip(earnings_now, earnings_last, earnings_diff, earnings_rate)), columns=columns_list, index=month_list)
         
