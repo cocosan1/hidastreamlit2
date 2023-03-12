@@ -214,33 +214,6 @@ def all():
     #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
     st.plotly_chart(fig3, use_container_width=True)
 
-    #*****受注ベース可視化
-    #グラフ用にint化
-    df_month2['受注/今期2'] = df_month2['受注/今期'].apply(lambda x: int(x.replace(',', '')))
-    df_month2['受注/前期2'] = df_month2['受注/前期'].apply(lambda x: int(x.replace(',', '')))
-
-    #グラフを描くときの土台となるオブジェクト
-    fig3 = go.Figure()
-    #今期のグラフの追加
-    for col in df_month2.columns[13:15]:
-        fig3.add_trace(
-            go.Scatter(
-                x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
-                y=df_month2[col],
-                mode = 'lines+markers+text', #値表示
-                text=round(df_month2[col]/10000),
-                textposition="top center", 
-                name=col)
-        )
-
-    #レイアウト設定     
-    fig3.update_layout(
-        title='受注ベース/売上',
-        showlegend=True #凡例表示
-    )
-    #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
-    st.plotly_chart(fig3, use_container_width=True)
-
     #*****累計 受注ベース可視化
     #グラフ用にint化
     df_month2['累計/受注/今期2'] = df_month2['受注/今期2'].cumsum()

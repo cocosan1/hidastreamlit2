@@ -12,6 +12,9 @@ import math
 st.set_page_config(page_title='売り上げ分析（星川/得意先別）')
 st.markdown('#### 売り上げ分析（星川/得意先別）')
 
+#小数点以下１ケタ
+pd.options.display.float_format = '{:.1f}'.format
+
 # ***ファイルアップロード 今期出荷***
 uploaded_file_snow = st.sidebar.file_uploader('今期出荷', type='xlsx', key='snow')
 df_snow = DataFrame()
@@ -157,6 +160,11 @@ def tif():
         df_month2['累計/受注/今期2'] = df_month2['受注/今期2'].cumsum()
         df_month2['累計/受注/前期2'] = df_month2['受注/前期2'].cumsum()
 
+        #table用にdiffとrate追加
+        df_month2['累計/前年差'] = df_month2['累計/受注/今期2'] - df_month2['累計/受注/前期2']
+        df_month2['累計/前年比'] = df_month2['累計/受注/今期2'] / df_month2['累計/受注/前期2']
+
+
         #グラフを描くときの土台となるオブジェクト
         fig4 = go.Figure()
         #今期のグラフの追加
@@ -180,7 +188,8 @@ def tif():
         st.plotly_chart(fig4, use_container_width=True) 
 
         with st.expander('詳細', expanded=False):
-            col_list = ['受注/今期', '受注/前期', '対前年差', '対前年比', '累計/受注/今期2', '累計/受注/前期2']
+            col_list = ['受注/今期', '受注/前期', '対前年差', '対前年比', '累計/受注/今期2', '累計/受注/前期2',\
+                        '累計/前年差', '累計/前年比']
             df_temp = df_month2[col_list]
             st.table(df_temp) 
 
@@ -263,6 +272,10 @@ def senmon():
         df_month2['累計/受注/今期2'] = df_month2['受注/今期2'].cumsum()
         df_month2['累計/受注/前期2'] = df_month2['受注/前期2'].cumsum()
 
+        #table用にdiffとrate追加
+        df_month2['累計/前年差'] = df_month2['累計/受注/今期2'] - df_month2['累計/受注/前期2']
+        df_month2['累計/前年比'] = df_month2['累計/受注/今期2'] / df_month2['累計/受注/前期2']
+
         #グラフを描くときの土台となるオブジェクト
         fig4 = go.Figure()
         #今期のグラフの追加
@@ -286,8 +299,8 @@ def senmon():
         st.plotly_chart(fig4, use_container_width=True) 
 
         with st.expander('詳細', expanded=False):
-            col_list = col_list = ['受注/今期', '受注/前期', '対前年差', '対前年比', \
-                                   '累計/受注/今期2', '累計/受注/前期2']
+            col_list = ['受注/今期', '受注/前期', '対前年差', '対前年比', '累計/受注/今期2', '累計/受注/前期2',\
+                        '累計/前年差', '累計/前年比']
             df_temp = df_month2[col_list]
             st.table(df_temp) 
 
