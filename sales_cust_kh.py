@@ -73,8 +73,8 @@ df_jlast[['金額', '出荷月', '受注月']] = df_jlast[[\
     '金額', '出荷月', '受注月']].fillna(0).astype('int64')
 #fillna　０で空欄を埋める
 
-df_jnow = df_jnow[df_jnow['営業担当コード']==952]
-df_jlast = df_jlast[df_jlast['営業担当コード']==952]
+# df_jnow = df_jnow[df_jnow['営業担当コード']==952]
+# df_jlast = df_jlast[df_jlast['営業担当コード']==952]
 
 #目標
 target_list = [9000000, 10600000, 10300000, 7900000, 8600000, 9100000, \
@@ -192,6 +192,118 @@ def tif():
                         '累計/前年差', '累計/前年比']
             df_temp = df_month2[col_list]
             st.table(df_temp) 
+def tif2():
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    columns_list = ['受注/今期', '受注/前期', '対前年差', '対前年比']
+    cust_list = [
+        '㈱東京ｲﾝﾃﾘｱ 下田店', '㈱東京ｲﾝﾃﾘｱ 秋田店', '㈱東京ｲﾝﾃﾘｱ 盛岡店',
+        '㈱東京ｲﾝﾃﾘｱ 仙台泉店', '㈱東京ｲﾝﾃﾘｱ 仙台南店'
+    ]
+
+    jnow_list = []
+    jlast_list = []
+    sales_diff_list = []
+    sales_rate_list = []
+
+    for cust in cust_list:
+        df_jnow2 = df_jnow[df_jnow['得意先名']==cust]
+        df_jlast2 = df_jlast[df_jlast['得意先名']==cust]
+        target_num = 0
+        for month in month_list:
+            target = target_list[target_num]
+            jnow = df_jnow2[df_jnow2['受注月'].isin([month])]['金額'].sum()
+            jlast = df_jlast2[df_jlast2['受注月'].isin([month])]['金額'].sum()
+            
+            sales_diff = jnow - jlast
+            sales_rate = f'{jnow / jlast * 100: 0.1f} %'
+
+            jnow_list.append('{:,}'.format(jnow))
+            jlast_list.append('{:,}'.format(jlast))
+
+            sales_diff_list.append('{:,}'.format(sales_diff))
+            sales_rate_list.append(sales_rate)
+
+            target_num += 1
+
+        df_month = pd.DataFrame(list(zip(\
+            jnow_list, jlast_list, sales_diff_list, sales_rate_list)), \
+                columns=columns_list, index=month_list)
+        
+        jnow_list = []
+        jlast_list = []
+        sales_diff_list = []
+        sales_rate_list = []
+    
+
+        #*****受注ベース可視化
+        df_month2 = df_month.copy()
+
+        #グラフ用にint化
+        df_month2['受注/今期2'] = df_month2['受注/今期'].apply(lambda x: int(x.replace(',', '')))
+        df_month2['受注/前期2'] = df_month2['受注/前期'].apply(lambda x: int(x.replace(',', '')))
+
+        st.write(f'受注ベース/売上: {cust}')
+        #グラフを描くときの土台となるオブジェクト
+        fig3 = go.Figure()
+        #今期のグラフの追加
+        for col in df_month2.columns[4: 6]:
+            fig3.add_trace(
+                go.Scatter(
+                    x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+                    y=df_month2[col],
+                    mode = 'lines+markers+text', #値表示
+                    text=round(df_month2[col]/10000),
+                    textposition="top center", 
+                    name=col)
+            )
+
+        #レイアウト設定     
+        fig3.update_layout(
+            title='月別',
+            showlegend=True #凡例表示
+        )
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+        st.plotly_chart(fig3, use_container_width=True)
+
+       
+
+        #*****累計 受注ベース可視化
+        #グラフ用にint化
+        df_month2['累計/受注/今期2'] = df_month2['受注/今期2'].cumsum()
+        df_month2['累計/受注/前期2'] = df_month2['受注/前期2'].cumsum()
+
+        #table用にdiffとrate追加
+        df_month2['累計/前年差'] = df_month2['累計/受注/今期2'] - df_month2['累計/受注/前期2']
+        df_month2['累計/前年比'] = df_month2['累計/受注/今期2'] / df_month2['累計/受注/前期2']
+
+
+        #グラフを描くときの土台となるオブジェクト
+        fig4 = go.Figure()
+        #今期のグラフの追加
+        for col in df_month2.columns[6:8]:
+            fig4.add_trace(
+                go.Scatter(
+                    x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+                    y=df_month2[col],
+                    mode = 'lines+markers+text', #値表示
+                    text=round(df_month2[col]/10000),
+                    textposition="top center", 
+                    name=col)
+            )
+
+        #レイアウト設定     
+        fig4.update_layout(
+            title='累計',
+            showlegend=True #凡例表示
+        )
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+        st.plotly_chart(fig4, use_container_width=True) 
+
+        with st.expander('詳細', expanded=False):
+            col_list = ['受注/今期', '受注/前期', '対前年差', '対前年比', '累計/受注/今期2', '累計/受注/前期2',\
+                        '累計/前年差', '累計/前年比']
+            df_temp = df_month2[col_list]
+            st.table(df_temp)             
 
 def senmon():
     month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -304,14 +416,251 @@ def senmon():
             df_temp = df_month2[col_list]
             st.table(df_temp) 
 
+def senmon2():
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    columns_list = ['受注/今期', '受注/前期', '対前年差', '対前年比']
+    cust_list = [
+        '青森木工商事㈱', '㈱七尾家具百貨店', '株式会社　かさい',
+        '有限会社　木乃や家具', '㈱日進', '（有）遠野家具センター',
+        '(有)相馬屋家具店', '㈱家具の橋本', '㈱カルタ'
+    ]
+
+    jnow_list = []
+    jlast_list = []
+    sales_diff_list = []
+    sales_rate_list = []
+
+    for cust in cust_list:
+        df_jnow2 = df_jnow[df_jnow['得意先名']==cust]
+        df_jlast2 = df_jlast[df_jlast['得意先名']==cust]
+        target_num = 0
+        for month in month_list:
+            target = target_list[target_num]
+            jnow = df_jnow2[df_jnow2['受注月'].isin([month])]['金額'].sum()
+            jlast = df_jlast2[df_jlast2['受注月'].isin([month])]['金額'].sum()
+            
+            sales_diff = jnow - jlast
+            sales_rate = f'{jnow / jlast * 100: 0.1f} %'
+
+            jnow_list.append('{:,}'.format(jnow))
+            jlast_list.append('{:,}'.format(jlast))
+
+            sales_diff_list.append('{:,}'.format(sales_diff))
+            sales_rate_list.append(sales_rate)
+
+            target_num += 1
+
+        df_month = pd.DataFrame(list(zip(\
+            jnow_list, jlast_list, sales_diff_list, sales_rate_list)), \
+                columns=columns_list, index=month_list)
+        
+        jnow_list = []
+        jlast_list = []
+        sales_diff_list = []
+        sales_rate_list = []
+    
+
+        #*****受注ベース可視化
+        df_month2 = df_month.copy()
+
+        #グラフ用にint化
+        df_month2['受注/今期2'] = df_month2['受注/今期'].apply(lambda x: int(x.replace(',', '')))
+        df_month2['受注/前期2'] = df_month2['受注/前期'].apply(lambda x: int(x.replace(',', '')))
+
+        st.write(f'受注ベース/売上: {cust}')
+        #グラフを描くときの土台となるオブジェクト
+        fig3 = go.Figure()
+        #今期のグラフの追加
+        for col in df_month2.columns[4: 6]:
+            fig3.add_trace(
+                go.Scatter(
+                    x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+                    y=df_month2[col],
+                    mode = 'lines+markers+text', #値表示
+                    text=round(df_month2[col]/10000),
+                    textposition="top center", 
+                    name=col)
+            )
+
+        #レイアウト設定     
+        fig3.update_layout(
+            title='月別',
+            showlegend=True #凡例表示
+        )
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+        st.plotly_chart(fig3, use_container_width=True)
+
+       
+
+        #*****累計 受注ベース可視化
+        #グラフ用にint化
+        df_month2['累計/受注/今期2'] = df_month2['受注/今期2'].cumsum()
+        df_month2['累計/受注/前期2'] = df_month2['受注/前期2'].cumsum()
+
+        #table用にdiffとrate追加
+        df_month2['累計/前年差'] = df_month2['累計/受注/今期2'] - df_month2['累計/受注/前期2']
+        df_month2['累計/前年比'] = df_month2['累計/受注/今期2'] / df_month2['累計/受注/前期2']
+
+        #グラフを描くときの土台となるオブジェクト
+        fig4 = go.Figure()
+        #今期のグラフの追加
+        for col in df_month2.columns[6:8]:
+            fig4.add_trace(
+                go.Scatter(
+                    x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+                    y=df_month2[col],
+                    mode = 'lines+markers+text', #値表示
+                    text=round(df_month2[col]/10000),
+                    textposition="top center", 
+                    name=col)
+            )
+
+        #レイアウト設定     
+        fig4.update_layout(
+            title='累計',
+            showlegend=True #凡例表示
+        )
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+        st.plotly_chart(fig4, use_container_width=True) 
+
+        with st.expander('詳細', expanded=False):
+            col_list = ['受注/今期', '受注/前期', '対前年差', '対前年比', '累計/受注/今期2', '累計/受注/前期2',\
+                        '累計/前年差', '累計/前年比']
+            df_temp = df_month2[col_list]
+            st.table(df_temp) 
+
+def target():
+    month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+    columns_list = ['受注/今期', '受注/前期', '対前年差', '対前年比']
+    cust_list = [
+        'ラボット・プランナー株式会社', '㈱家具のオツタカ'
+    ]
+    labo_target_list = [
+        500000, 1000000, 1800000, 2000000, 600000, 900000,\
+        900000, 800000, 600000, 700000, 1500000, 1500000
+    ]
+    otutaka_target_list = [
+        450000, 450000, 450000, 450000, 450000, 450000,
+        450000, 450000, 450000, 450000, 450000, 450000,
+    ]
+    jnow_list = []
+    jlast_list = []
+    sales_diff_list = []
+    sales_rate_list = []
+
+    #****出荷ベースに修正すること！！！！！！
+
+    for cust in cust_list:
+        df_jnow2 = df_jnow[df_jnow['得意先名']==cust]
+        df_jlast2 = df_jlast[df_jlast['得意先名']==cust]
+        target_num = 0
+        for month in month_list:
+            target = target_list[target_num]
+            jnow = df_jnow2[df_jnow2['受注月'].isin([month])]['金額'].sum()
+            jlast = df_jlast2[df_jlast2['受注月'].isin([month])]['金額'].sum()
+            
+            sales_diff = jnow - jlast
+            sales_rate = f'{jnow / jlast * 100: 0.1f} %'
+
+            jnow_list.append('{:,}'.format(jnow))
+            jlast_list.append('{:,}'.format(jlast))
+
+            sales_diff_list.append('{:,}'.format(sales_diff))
+            sales_rate_list.append(sales_rate)
+
+            target_num += 1
+
+        df_month = pd.DataFrame(list(zip(\
+            jnow_list, jlast_list, sales_diff_list, sales_rate_list)), \
+                columns=columns_list, index=month_list)
+        
+        jnow_list = []
+        jlast_list = []
+        sales_diff_list = []
+        sales_rate_list = []
+    
+
+        #*****受注ベース可視化
+        df_month2 = df_month.copy()
+
+        #グラフ用にint化
+        df_month2['受注/今期2'] = df_month2['受注/今期'].apply(lambda x: int(x.replace(',', '')))
+        df_month2['受注/前期2'] = df_month2['受注/前期'].apply(lambda x: int(x.replace(',', '')))
+
+        st.write(f'受注ベース/売上: {cust}')
+        #グラフを描くときの土台となるオブジェクト
+        fig3 = go.Figure()
+        #今期のグラフの追加
+        for col in df_month2.columns[4: 6]:
+            fig3.add_trace(
+                go.Scatter(
+                    x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+                    y=df_month2[col],
+                    mode = 'lines+markers+text', #値表示
+                    text=round(df_month2[col]/10000),
+                    textposition="top center", 
+                    name=col)
+            )
+
+        #レイアウト設定     
+        fig3.update_layout(
+            title='月別',
+            showlegend=True #凡例表示
+        )
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+        st.plotly_chart(fig3, use_container_width=True)
+
+       
+
+        #*****累計 受注ベース可視化
+        #グラフ用にint化
+        df_month2['累計/受注/今期2'] = df_month2['受注/今期2'].cumsum()
+        df_month2['累計/受注/前期2'] = df_month2['受注/前期2'].cumsum()
+
+        #table用にdiffとrate追加
+        df_month2['累計/前年差'] = df_month2['累計/受注/今期2'] - df_month2['累計/受注/前期2']
+        df_month2['累計/前年比'] = df_month2['累計/受注/今期2'] / df_month2['累計/受注/前期2']
+
+        #グラフを描くときの土台となるオブジェクト
+        fig4 = go.Figure()
+        #今期のグラフの追加
+        for col in df_month2.columns[6:8]:
+            fig4.add_trace(
+                go.Scatter(
+                    x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
+                    y=df_month2[col],
+                    mode = 'lines+markers+text', #値表示
+                    text=round(df_month2[col]/10000),
+                    textposition="top center", 
+                    name=col)
+            )
+
+        #レイアウト設定     
+        fig4.update_layout(
+            title='累計',
+            showlegend=True #凡例表示
+        )
+        #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
+        st.plotly_chart(fig4, use_container_width=True) 
+
+        with st.expander('詳細', expanded=False):
+            col_list = ['受注/今期', '受注/前期', '対前年差', '対前年比', '累計/受注/今期2', '累計/受注/前期2',\
+                        '累計/前年差', '累計/前年比']
+            df_temp = df_month2[col_list]
+            st.table(df_temp)
+
+
+
         
 
 def main():
     # アプリケーション名と対応する関数のマッピング
     apps = {
         '-': None,
-        'TIF': tif,
-        '専門店': senmon
+        'TIF/星川': tif,
+        'TIF/その他': tif2,
+        '専門店/星川': senmon,
+        '専門店/その他': senmon2,
 
 
     }
