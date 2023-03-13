@@ -223,9 +223,9 @@ def main():
         st.info('サイドバーから分析項目を選択してください')
         st.stop()
 
-    link = '[home](http://linkpagetest.s3-website-ap-northeast-1.amazonaws.com/)'
+    link = '[home](http://linkpagekh.s3-website-ap-northeast-1.amazonaws.com/)'
     st.sidebar.markdown(link, unsafe_allow_html=True)
-    st.sidebar.caption('homeに戻る')    
+    st.sidebar.caption('homeに戻る')     
 
     # 選択されたアプリケーションを処理する関数を呼び出す
     render_func = apps[selected_app_name]
