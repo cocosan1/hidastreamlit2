@@ -531,51 +531,60 @@ def senmon2():
 
 def target():
     month_list = [10, 11, 12, 1, 2, 3, 4, 5, 6, 7, 8, 9]
-    columns_list = ['受注/今期', '受注/前期', '対前年差', '対前年比']
+    columns_list = ['目標', '出荷/今期', '出荷/前期', '対目標差', '対目標比', '対前年差', '対前年比']
     cust_list = [
         'ラボット・プランナー株式会社', '㈱家具のオツタカ'
     ]
     labo_target_list = [
-        500000, 1000000, 1800000, 2000000, 600000, 900000,\
+        500000, 1000000, 1800000, 200000, 600000, 900000,\
         900000, 800000, 600000, 700000, 1500000, 1500000
     ]
     otutaka_target_list = [
-        450000, 450000, 450000, 450000, 450000, 450000,
-        450000, 450000, 450000, 450000, 450000, 450000,
+        400000, 400000, 400000, 400000, 400000, 400000,
+        400000, 400000, 450000, 450000, 450000, 450000,
     ]
-    jnow_list = []
-    jlast_list = []
+    target_all_list = [labo_target_list, otutaka_target_list]
+
+    snow_list = []
+    slast_list = []
+    target_diff_list = []
+    target_rate_list = []
     sales_diff_list = []
     sales_rate_list = []
 
     #****出荷ベースに修正すること！！！！！！
 
-    for cust in cust_list:
-        df_jnow2 = df_jnow[df_jnow['得意先名']==cust]
-        df_jlast2 = df_jlast[df_jlast['得意先名']==cust]
+    for (cust, target_list) in zip(cust_list, target_all_list):
+        df_snow2 = df_snow[df_snow['得意先名']==cust]
+        df_slast2 = df_slast[df_slast['得意先名']==cust]
         target_num = 0
         for month in month_list:
             target = target_list[target_num]
-            jnow = df_jnow2[df_jnow2['受注月'].isin([month])]['金額'].sum()
-            jlast = df_jlast2[df_jlast2['受注月'].isin([month])]['金額'].sum()
-            
-            sales_diff = jnow - jlast
-            sales_rate = f'{jnow / jlast * 100: 0.1f} %'
+            snow = df_snow2[df_snow2['受注月'].isin([month])]['金額'].sum()
+            slast = df_slast2[df_slast2['受注月'].isin([month])]['金額'].sum()
 
-            jnow_list.append('{:,}'.format(jnow))
-            jlast_list.append('{:,}'.format(jlast))
+            target_diff = snow - target
+            target_rate = f'{snow / target * 100: 0.1f} %'
+            sales_diff = snow - slast
+            sales_rate = f'{snow / slast * 100: 0.1f} %'
 
+            snow_list.append('{:,}'.format(snow))
+            slast_list.append('{:,}'.format(slast))
+            target_diff_list.append(target_diff)
+            target_rate_list.append(target_rate)
             sales_diff_list.append('{:,}'.format(sales_diff))
             sales_rate_list.append(sales_rate)
 
             target_num += 1
 
         df_month = pd.DataFrame(list(zip(\
-            jnow_list, jlast_list, sales_diff_list, sales_rate_list)), \
-                columns=columns_list, index=month_list)
+            target_list, snow_list, slast_list, target_diff_list, target_rate_list, \
+                sales_diff_list, sales_rate_list)), columns=columns_list, index=month_list)
         
-        jnow_list = []
-        jlast_list = []
+        snow_list = []
+        slast_list = []
+        target_diff_list = []
+        target_rate_list = []
         sales_diff_list = []
         sales_rate_list = []
     
@@ -584,14 +593,18 @@ def target():
         df_month2 = df_month.copy()
 
         #グラフ用にint化
-        df_month2['受注/今期2'] = df_month2['受注/今期'].apply(lambda x: int(x.replace(',', '')))
-        df_month2['受注/前期2'] = df_month2['受注/前期'].apply(lambda x: int(x.replace(',', '')))
+        df_month2['出荷/今期2'] = df_month2['出荷/今期'].apply(lambda x: int(x.replace(',', '')))
+        df_month2['出荷/前期2'] = df_month2['出荷/前期'].apply(lambda x: int(x.replace(',', '')))
+
+        with st.expander('詳細', expanded=False):
+            df_temp = df_month2[columns_list]
+            st.table(df_temp)
 
         st.write(f'受注ベース/売上: {cust}')
         #グラフを描くときの土台となるオブジェクト
         fig3 = go.Figure()
         #今期のグラフの追加
-        for col in df_month2.columns[4: 6]:
+        for col in ['目標', '出荷/今期2', '出荷/前期2']:
             fig3.add_trace(
                 go.Scatter(
                     x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
@@ -610,21 +623,31 @@ def target():
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
         st.plotly_chart(fig3, use_container_width=True)
 
-       
-
         #*****累計 受注ベース可視化
         #グラフ用にint化
-        df_month2['累計/受注/今期2'] = df_month2['受注/今期2'].cumsum()
-        df_month2['累計/受注/前期2'] = df_month2['受注/前期2'].cumsum()
+        df_month2['累計/目標'] = df_month2['目標'].cumsum()
+        df_month2['累計/出荷/今期2'] = df_month2['出荷/今期2'].cumsum()
+        df_month2['累計/出荷/前期2'] = df_month2['出荷/前期2'].cumsum()
 
         #table用にdiffとrate追加
-        df_month2['累計/前年差'] = df_month2['累計/受注/今期2'] - df_month2['累計/受注/前期2']
-        df_month2['累計/前年比'] = df_month2['累計/受注/今期2'] / df_month2['累計/受注/前期2']
+        df_month2['累計/目標差'] = df_month2['累計/出荷/今期2'] - df_month2['累計/目標']
+        df_month2['累計/目標比'] = df_month2['累計/出荷/今期2'] / df_month2['累計/目標']
+        df_month2['累計/目標比'] = df_month2['累計/目標比'].apply(lambda x: '{:.2f}'.format(x))
+
+        df_month2['累計/前年差'] = df_month2['累計/出荷/今期2'] - df_month2['累計/出荷/前期2']
+        df_month2['累計/前年比'] = df_month2['累計/出荷/今期2'] / df_month2['累計/出荷/前期2']
+        df_month2['累計/前年比'] = df_month2['累計/前年比'].apply(lambda x: '{:.2f}'.format(x))
+
+        with st.expander('詳細', expanded=False):
+            col_list = ['累計/目標', '累計/出荷/今期2', '累計/出荷/前期2', '累計/目標差', '累計/目標比', \
+                        '累計/前年差', '累計/前年比']
+            df_temp = df_month2[col_list]
+            st.table(df_temp)
 
         #グラフを描くときの土台となるオブジェクト
         fig4 = go.Figure()
         #今期のグラフの追加
-        for col in df_month2.columns[6:8]:
+        for col in ['累計/目標', '累計/出荷/今期2', '累計/出荷/前期2']:
             fig4.add_trace(
                 go.Scatter(
                     x=['10月', '11月', '12月', '1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月'], #strにしないと順番が崩れる
@@ -642,16 +665,7 @@ def target():
         )
         #plotly_chart plotlyを使ってグラグ描画　グラフの幅が列の幅
         st.plotly_chart(fig4, use_container_width=True) 
-
-        with st.expander('詳細', expanded=False):
-            col_list = ['受注/今期', '受注/前期', '対前年差', '対前年比', '累計/受注/今期2', '累計/受注/前期2',\
-                        '累計/前年差', '累計/前年比']
-            df_temp = df_month2[col_list]
-            st.table(df_temp)
-
-
-
-        
+       
 
 def main():
     # アプリケーション名と対応する関数のマッピング
@@ -661,7 +675,7 @@ def main():
         'TIF/その他': tif2,
         '専門店/星川': senmon,
         '専門店/その他': senmon2,
-
+        '目標比': target
 
     }
     selected_app_name = st.sidebar.selectbox(label='分析項目の選択',
